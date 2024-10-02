@@ -18,7 +18,9 @@
     "timeline-view/*",
     "timeline/*",
     "utils/*",
-    "notetray/*"
+    "notetray/*",
+    "index.js",
+    "index.js.map"
   ],
   "repository": {
     "type": "git",

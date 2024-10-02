@@ -2,6 +2,8 @@ timeline-view/*
 timeline/*
 utils/*
 notetray/*
+index.js
+index.js.map
 package-lock.json
 
 # Logs
