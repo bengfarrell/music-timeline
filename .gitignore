@@ -1,3 +1,9 @@
+timeline-view/*
+timeline/*
+utils/*
+notetray/*
+package-lock.json
+
 # Logs
 logs
 *.log

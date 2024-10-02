@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>MIDI Sequence Timeline</title>
+    <script src="./timeline/index.js" type="module"></script>
+    <script type="module">
+        import { Playback } from './utils/playback.js';
+        import { generateExample } from './utils/examplemidi.js';
+
+        document.getElementById('play').addEventListener('click', () => {
+            if (!Playback.sequence) {
+                Playback.sequence = document.querySelector('ms-timeline').track;
+            }
+            Playback.play();
+        });
+
+        document.getElementById('pause').addEventListener('click', () => {
+            Playback.pause();
+        });
+
+        document.getElementById('timeline').midiTrack = generateExample();
+    </script>
+    <style>
+        body {
+            padding: 0;
+            margin: 50px;
+            background-color: #333;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+        :root {
+            color-scheme: dark;
+        }
+
+        ms-timeline {
+            display: flex;
+            width: 80%;
+            height: 60%;
+        }
+    </style>
+</head>
+<body>
+
+<button id="play">Play</button>
+<button id="pause">Pause</button>
+<br/><br/>
+
+<ms-timeline id="timeline"></ms-timeline>
+<!--<ms-timeline src="samples/test.mid" tracknum="0"></ms-timeline>-->
+</body>
+</html>

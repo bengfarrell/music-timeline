@@ -1,0 +1,41 @@
+{
+  "name": "midi-sequence-timeline",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "./node_modules/.bin/tsc",
+    "build:watch": "./node_modules/.bin/tsc --watch",
+    "lint": "npm run lint:eslint",
+    "lint:eslint": "eslint 'src/**/*.ts'",
+    "lint:lit-analyzer": "lit-analyzer",
+    "format": "prettier \\\\\\\"**/*.{cjs,html,js,json,md,ts}\\\\\\\" --ignore-path ../../../../Desktop/lit-element-starter-ts-main/.eslintignore --write",
+    "serve": "npm run build:watch & wds --watch",
+    "serve:prod": "MODE=prod npm run serve"
+  },
+  "files": [
+    "timeline-view/*",
+    "timeline/*",
+    "utils/*",
+    "notetray/*"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bengfarrell/midi-sequence-timeline.git"
+  },
+  "private": true,
+  "dependencies": {
+    "lit": "^3.2.0",
+    "midi-json-parser": "^8.1.45",
+    "tone": "^14.7.77"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.25.0",
+    "@typescript-eslint/parser": "^5.25.0",
+    "@web/dev-server": "^0.1.31",
+    "eslint": "^8.15.0",
+    "prettier": "^2.6.2",
+    "typescript": "~5.2.0"
+  }
+}
