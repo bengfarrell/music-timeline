@@ -1,6 +1,5 @@
 import { css } from 'lit';
-
-export const style = css`
+export const style = css `
     :host {
         width: 100%;
         overflow-x: auto;
@@ -104,3 +103,4 @@ export const style = css`
         transform: scaleX(1.155) skewY(-30deg) rotate(-30deg) translateY(-42.3%) skewX(-30deg) scaleY(.866) translateX(24%);
     }
 `;
+//# sourceMappingURL=timeline-view.css.js.map

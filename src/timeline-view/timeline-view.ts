@@ -1,14 +1,23 @@
 import { LitElement, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { style } from './timeline-view.css';
-import { NoteEvent } from '../utils/miditrack.js';
-import { Playback } from '../utils/playback';
-import { Timeline } from '../timeline/timeline.js';
+import { NoteEvent } from '../utils';
+import { Timeline } from '../timeline';
 
 export class TimelineEvent extends Event {
-    static NOTE_HOVER = 'onnotehover';
+    static NOTE_HOVER = 'notehover';
+    static SEEK = 'seek';
+    static RANGE_SELECT = 'rangeselect';
 
+    public time: number;
     public note?: NoteEvent;
+    public range?: [number, number];
+
+    constructor(type: string, args: { time: number, note?: NoteEvent, range?: [number, number] }, eventInitDict?: EventInit) {
+        super(type, eventInitDict);
+        this.time = args.time;
+        this.range = args.range;
+    }
 }
 
 @customElement('ms-timeline-view')
@@ -21,7 +30,7 @@ export class TimelineView extends LitElement {
     pixelsPerBeat: number = 0;
 
     @property({ type: Number })
-    currentBeatTime: number = 0;
+    currentTime: number = 0;
 
     @property({ type: Number })
     beatsPerMeasure: number = 0;
@@ -47,7 +56,8 @@ export class TimelineView extends LitElement {
     bounds?: DOMRect;
 
     isSelecting: boolean = false;
-    selectionRange: (number | undefined)[] = [ undefined, undefined];
+    pendingSeek?: number;
+    selectionRange: [number | undefined, number | undefined] = [ undefined, undefined ];
 
     set sequence(data: NoteEvent[]) {
         this._notes = data;
@@ -59,13 +69,17 @@ export class TimelineView extends LitElement {
         this.addEventListener('pointerdown', this.onPointerDown.bind(this));
         this.addEventListener('pointermove', this.onPointerMove.bind(this));
         document.body.addEventListener('pointerup', () => {
+            const range = this.selectionRange.sort((a, b) => a! - b!);
+            if (this.isSelecting && range && range[0] !== range[1] && !this.pendingSeek) {
+                this.dispatchEvent(new TimelineEvent(TimelineEvent.RANGE_SELECT, { time: range[0]!, range: range as [number, number] }, { bubbles: true, composed: true }));
+            } else if (this.pendingSeek){
+                this.currentTime = this.pendingSeek;
+                this.dispatchEvent(new TimelineEvent(TimelineEvent.SEEK, { time: this.pendingSeek }, { bubbles: true, composed: true }));
+                this.pendingSeek = undefined;
+            }
             this.isSelecting = false;
             this.markerDragging = undefined;
         });
-
-        setInterval(() => {
-            this.currentBeatTime = Playback.currentTimeAsBeats;
-        }, 100);
     }
 
     protected onPointerDown(e: PointerEvent) {
@@ -74,7 +88,7 @@ export class TimelineView extends LitElement {
         this.bounds = this.getBoundingClientRect();
         const x = e.clientX - (this.bounds?.left || 0) + this.scrollLeft;
         const beat = Math.floor(x / this.pixelsPerBeat);
-        Playback.currentTime = beat;
+        this.pendingSeek = beat;
         this.selectionRange = [beat, undefined];
         this.requestUpdate();
     }
@@ -90,15 +104,15 @@ export class TimelineView extends LitElement {
                     this.selectionRange[1] = Math.floor(x / this.pixelsPerBeat);
                     break;
                 case 'playback':
-                    Playback.currentTime = Math.floor(x / this.pixelsPerBeat);
+                    this.pendingSeek = x / this.pixelsPerBeat;
                     break;
             }
             this.requestUpdate();
             return;
         }
-        if (this.isSelecting && this.selectionRange) {
+        if (this.isSelecting && this.selectionRange && this.selectionRange[0] !== Math.floor(x / this.pixelsPerBeat)) {
             this.selectionRange[1] = Math.floor(x / this.pixelsPerBeat);
-            Playback.currentTime = Math.min(this.selectionRange[0]!, this.selectionRange[1]!);
+            this.pendingSeek = undefined;
             this.requestUpdate();
         }
     }
@@ -132,25 +146,24 @@ export class TimelineView extends LitElement {
             <div @pointermove=${(e: PointerEvent) => {
                 const note = Number((e.target as HTMLDivElement).dataset.noteIndex);
                 if (note !== undefined) {
-                    const event = new TimelineEvent(TimelineEvent.NOTE_HOVER);
-                    event.note = this._notes[note];
-                    dispatchEvent(event);
+                    this.dispatchEvent(new TimelineEvent(TimelineEvent.NOTE_HOVER, 
+                    { time: this._notes[note].time, note: this._notes[note] }, { bubbles: true, composed: true }));
                 }
             }}>
                 ${this._notes.map((event: NoteEvent, index) => {
                     return html`${this.renderNote(event, index)}`;
                 })}
             </div>
-            <div id="playback-line" style="left: ${this.currentBeatTime * this.pixelsPerBeat}px"></div>
-            <div class="marker playhead" id="playback" @pointerdown=${this.handleMarkerDown.bind(this)} style="left: ${this.currentBeatTime * this.pixelsPerBeat - 3}px"></div>
+            ${this._notes.length > 0 ? html`<div id="playback-line" style="left: ${this.currentTime * this.pixelsPerBeat}px"></div>
+            <div class="marker playhead" id="playback" @pointerdown=${this.handleMarkerDown.bind(this)} style="left: ${this.currentTime * this.pixelsPerBeat - 3}px"></div>
             <div class="marker" id="start-range" @pointerdown=${this.handleMarkerDown.bind(this)} style="left: ${drawRange ? range[0]! * this.pixelsPerBeat - 3 : -100}px"></div>
-            <div class="marker" id="end-range" @pointerdown=${this.handleMarkerDown.bind(this)} style="left: ${drawRange ? range[1]! * this.pixelsPerBeat - 3 : -100}px"></div>`;
+            <div class="marker" id="end-range" @pointerdown=${this.handleMarkerDown.bind(this)} style="left: ${drawRange ? range[1]! * this.pixelsPerBeat - 3 : -100}px"></div>` : undefined}`;
     }
 
     protected renderNote(note: NoteEvent, index: number) {
         return html`<div class="noteblock" data-note-index="${index}"
                      style="left: ${note.time * this.pixelsPerBeat}px;
-                     top: ${(this.noteMax - note.note! - 2) * this.noteHeight + 2 + this.noteHeight + Timeline.TOP_GUTTER}px; 
+                     top: ${(this.noteMax - note.note! - 2) * this.noteHeight + 2 + this.noteHeight + Timeline.TOP_GUTTER - 1}px; 
                      height: ${this.noteHeight -3}px;
                      width: ${note.duration * this.pixelsPerBeat}px;"></div>`;
     }

@@ -1,73 +1,59 @@
-import { TimeMeta, TimeSignature } from './midifile.js';
-import { NoteEvent } from './noteevent.js';
-
-const defaultTimeSignature: TimeSignature = { numerator: 4, denominator: 4 };
+const defaultTimeSignature = { numerator: 4, denominator: 4 };
 const defaultBPM = 120;
-
 export class MIDITrack {
-    protected timeMeta: TimeMeta = {};
-
-    events: NoteEvent[] = [];
-    name: string = '';
-    noteRange: [number, number] = [0, 0];
-
-    static fromMIDI(events: any[]): MIDITrack {
+    constructor() {
+        this.timeMeta = {};
+        this.events = [];
+        this.name = '';
+        this.noteRange = [0, 0];
+    }
+    static fromMIDI(events) {
         const t = new MIDITrack();
         t.parseMIDI(events);
         return t;
     }
-
-    static fromNoteEvents(events: NoteEvent[], time: TimeMeta): MIDITrack {
+    static fromNoteEvents(events, time) {
         const t = new MIDITrack();
         t.events = events;
-        t.timeMeta.duration = events[events.length -1].time;
+        t.timeMeta.duration = events[events.length - 1].time;
         t.timeMeta.timeSignature = time.timeSignature;
         t.processTrack();
         return t;
     }
-
     get hasTimingInfo() {
         return this.timeMeta.tempo !== undefined || this.timeMeta.timeSignature !== undefined;
     }
-
     get sequence() { return this.sequenceAtBPM(this.BPM); }
-
-    get duration() { return (this.timeMeta.duration || 0) / this.BPM }
-
-    sequenceAtBPM(bpm: number) {
+    get duration() { return (this.timeMeta.duration || 0) / this.BPM; }
+    sequenceAtBPM(bpm) {
         return this.events.map(e => {
             return {
                 time: e.time / bpm,
                 note: e.note,
                 duration: e.duration / bpm,
-                velocity: e.velocity }; });
+                velocity: e.velocity
+            };
+        });
     }
-
     get BPM() {
         if (this.timeMeta.tempo && this.timeMeta.division) {
             return this.timeMeta.division / (this.timeMeta.tempo / 1000000);
         }
         if (this.timeMeta.division) {
-            return this.timeMeta.division
+            return this.timeMeta.division;
         }
         return defaultBPM;
     }
-
-    get tempo() { return this.timeMeta.tempo }
-
-
+    get tempo() { return this.timeMeta.tempo; }
     set tempo(val) { this.timeMeta.tempo = val; }
-
     get timeSignature() {
         return this.timeMeta.timeSignature || defaultTimeSignature;
     }
-
-    get beatRange() { return [ 0, Math.ceil(this.timeMeta.duration || 0) ]; }
-
-    parseMIDI(events: any[]) {
+    get beatRange() { return [0, Math.ceil(this.timeMeta.duration || 0)]; }
+    parseMIDI(events) {
         let absTime = 0;
-        const downNotes: NoteEvent[] = [];
-        events.forEach((event: any) => {
+        const downNotes = [];
+        events.forEach((event) => {
             if (event.trackName) {
                 this.name = event.trackName;
             }
@@ -101,8 +87,7 @@ export class MIDITrack {
         this.timeMeta.duration = absTime;
         this.processTrack();
     }
-
-    populateMissingTimeData(time: TimeMeta) {
+    populateMissingTimeData(time) {
         if (this.timeMeta.division === undefined) {
             this.timeMeta.division = time.division;
         }
@@ -113,9 +98,9 @@ export class MIDITrack {
             this.timeMeta.tempo = time.tempo;
         }
     }
-
-    protected processTrack() {
-        this.noteRange[0] = this.events.reduce((acc, event) => { return Math.min ((event as NoteEvent).note || acc, acc); }, Infinity);
-        this.noteRange[1] = this.events.reduce((acc, event) => { return Math.max ((event as NoteEvent).note || acc, acc); }, 0) + 1;
+    processTrack() {
+        this.noteRange[0] = this.events.reduce((acc, event) => { return Math.min(event.note || acc, acc); }, Infinity);
+        this.noteRange[1] = this.events.reduce((acc, event) => { return Math.max(event.note || acc, acc); }, 0) + 1;
     }
 }
+//# sourceMappingURL=miditrack.js.map

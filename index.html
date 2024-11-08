@@ -2,25 +2,47 @@
 
 <html>
 <head>
+    <script>
+        window.process = {
+            env: {
+                NODE_ENV: 'development',
+            },
+        };
+    </script>
     <meta charset="utf-8" />
     <title>MIDI Sequence Timeline</title>
     <script src="./timeline/index.js" type="module"></script>
     <script type="module">
         import { Playback } from './utils/playback.js';
-        import { generateExample } from './utils/examplemidi.js';
+        import { generateExample } from './utils/index.js';
+        import { TimelineEvent } from './timeline-view/index.js';
 
-        document.getElementById('play').addEventListener('click', () => {
-            if (!Playback.sequence) {
-                Playback.sequence = document.querySelector('ms-timeline').track;
-            }
+        const timeline = document.querySelector('ms-timeline');
+        timeline.addEventListener(TimelineEvent.SEEK, (e) => {
+            Playback.seek(e.time);
+        });
+
+        timeline.addEventListener(TimelineEvent.RANGE_SELECT, (e) => {
+           Playback.loop(...e.range);
+        });
+
+        document.getElementById('play').addEventListener('click', async () => {
+            Playback.sequence = timeline.track.sequence;
             Playback.play();
+            setInterval(() => {
+                timeline.currentTime = Playback.currentTime;
+            }, 100);
+        });
+
+        document.getElementById('rate').addEventListener('change', (e) => {
+            Playback.rate = e.target.value;
         });
 
         document.getElementById('pause').addEventListener('click', () => {
             Playback.pause();
         });
 
-        document.getElementById('timeline').midiTrack = generateExample();
+      //  document.getElementById('timeline').midiTrack = generateExample();
     </script>
     <style>
         body {
@@ -36,7 +58,6 @@
         }
 
         ms-timeline {
-            display: flex;
             width: 80%;
             height: 60%;
         }
@@ -46,9 +67,11 @@
 
 <button id="play">Play</button>
 <button id="pause">Pause</button>
+<label>Rate</label>
+<input id="rate" type="number" min="0.1" value="1" max="5" step="0.1" />
 <br/><br/>
 
-<ms-timeline id="timeline"></ms-timeline>
-<!--<ms-timeline src="samples/test.mid" tracknum="0"></ms-timeline>-->
+<!--<ms-timeline id="timeline"></ms-timeline>-->
+<ms-timeline src="samples/cheers.mid"></ms-timeline>
 </body>
 </html>

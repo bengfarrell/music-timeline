@@ -2,6 +2,8 @@
   "compilerOptions": {
     "target": "es2021",
     "module": "es2020",
+    "declarationMap": true,
+    "declaration": true,
     "lib": ["es2021", "DOM", "DOM.Iterable"],
     "sourceMap": true,
     "inlineSources": true,

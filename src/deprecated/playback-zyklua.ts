@@ -1,8 +1,14 @@
+/**
+ * Sample implementation with the Zyklus clock
+ * https://github.com/felixroos/zyklus
+ */
+
 import { ReactiveController, ReactiveElement } from 'lit';
-import { NoteEvent } from './noteevent.js';
+import { NoteEvent } from '../utils/noteevent';
+import './zyklus';
 import * as Tone from 'tone';
-import { getNotation } from './music.js';
-import { EventBus } from './eventbus.js';
+import { getNotation } from '../utils/music';
+import { EventBus } from '../utils/eventbus';
 
 export class PlayStateChangeEvent extends Event {
     static readonly type = 'playstatechange';
@@ -30,7 +36,6 @@ export class Playback extends EventBus implements ReactiveController {
 
     protected static _start = 0;
     protected static _end?: number;
-    protected static _lastTick = 0;
 
     protected static clock?: AudioContext;
     protected static synth?: Tone.PolySynth;
@@ -68,13 +73,12 @@ export class Playback extends EventBus implements ReactiveController {
         if (Playback._notebuffer.length === 0) Playback._notebuffer = Playback._sequence.filter(e => e.time >= Playback._currentTime && e.time <= Playback._start + Playback.duration);
 
         if (!Playback.isPlaying && !Playback.isPaused) {
-            Playback._lastTick = Tone.now();
-            requestAnimationFrame(() => Playback.tick());
+            // @ts-ignore
+            Playback.clock.createClock(Playback.tick, 0.05).start();
             Playback.isPlaying = true;
             Playback.isPaused = false;
         } else if (Playback.isPaused) {
-            Playback._lastTick = Tone.now();
-            requestAnimationFrame(() => Playback.tick());
+            Playback.clock?.resume();
             Playback.isPaused = false;
             Playback.isPlaying = true;
         }
@@ -143,11 +147,9 @@ export class Playback extends EventBus implements ReactiveController {
 
     loop(start: number, end: number) { Playback.loop(start, end); }
 
-    static tick() {
-        const delta = Tone.now() - Playback._lastTick;
-        Playback._lastTick = Tone.now();
+    static tick(_time: number, duration: number, _tick: number) {
         const next = Playback._notebuffer[0];
-        Playback._currentTime += delta * Playback.playbackRate;
+        Playback._currentTime += duration * Playback.playbackRate;
         if (next && Playback._currentTime >= next.time - 0.2) {
             const event = Playback._notebuffer.shift();
             if (event) {
@@ -162,16 +164,9 @@ export class Playback extends EventBus implements ReactiveController {
             if (Playback.isLooping) {
                 Playback.seek(Playback._start);
             } else {
+                Playback.clock?.suspend();
                 Playback.isPlaying = false;
             }
-        }
-
-        this.hosts.forEach(host => {
-            host.requestUpdate();
-        });
-
-        if (Playback.isPlaying) {
-            requestAnimationFrame(() => Playback.tick());
         }
     }
 
