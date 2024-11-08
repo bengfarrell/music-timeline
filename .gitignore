@@ -9,6 +9,7 @@ index.d.ts.map
 package-lock.json
 
 .idea
+.npmrc
 
 # Logs
 logs
