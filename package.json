@@ -14,6 +14,7 @@
     "serve": "npm run build:watch & wds --watch",
     "serve:prod": "MODE=prod npm run serve"
   },
+  "registry": "https://npm.pkg.github.com/",
   "files": [
     "timeline-view/*",
     "timeline/*",
