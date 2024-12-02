@@ -13,7 +13,7 @@
     <title>MIDI Sequence Timeline</title>
     <script src="./timeline/index.js" type="module"></script>
     <script type="module">
-        import { Playback } from './utils/playback.js';
+        import { Playback } from './playback/timedplayback.js';
         import { generateExample } from './utils/index.js';
         import { TimelineEvent } from './timeline-view/index.js';
 
@@ -42,7 +42,7 @@
             Playback.pause();
         });
 
-      //  document.getElementById('timeline').midiTrack = generateExample();
+      document.getElementById('timeline').midiTrack = generateExample();
     </script>
     <style>
         body {
@@ -71,7 +71,7 @@
 <input id="rate" type="number" min="0.1" value="1" max="5" step="0.1" />
 <br/><br/>
 
-<!--<ms-timeline id="timeline"></ms-timeline>-->
-<ms-timeline src="samples/cheers.mid"></ms-timeline>
+<ms-timeline id="timeline"></ms-timeline>
+<!--<ms-timeline src="samples/cheers.mid"></ms-timeline>-->
 </body>
 </html>

@@ -1,10 +1,10 @@
 import { MIDITrack } from './miditrack';
 import { NoteEvent } from './noteevent';
 
-export const generateExample = () => {
+export const generateExample = (iterations: number = 100) => {
     const bpm = 120;
     const notes: NoteEvent[] = [];
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < iterations; i++) {
         notes.push({
             note: Math.floor(i / 5) + 60,
             time: i * 0.5 * bpm,
