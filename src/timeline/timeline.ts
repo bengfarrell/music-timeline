@@ -33,6 +33,9 @@ export class Timeline extends LitElement {
     protected _midiTrack?: MIDITrack;
 
     set midiTrack(track: MIDITrack | undefined) {
+        if (this._midiTrack?.uuid === track?.uuid) {
+            return;
+        }
         this._midiTrack = track;
         if (this.timelineView) {
             this.timelineView.sequence = this._midiTrack?.sequence || [];

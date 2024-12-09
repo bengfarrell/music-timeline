@@ -51,7 +51,7 @@ export class TimedPlayback extends BasePlayback {
 
     async stop() {
         await this.clock?.close();
-        super.stop();
+        await super.stop();
     }
 
     tick() {

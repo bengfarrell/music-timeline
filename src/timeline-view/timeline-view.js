@@ -20,6 +20,8 @@ TimelineEvent.SEEK = 'seek';
 TimelineEvent.RANGE_SELECT = 'rangeselect';
 let TimelineView = class TimelineView extends LitElement {
     set sequence(data) {
+        this.selectionRange = [undefined, undefined];
+        this.dispatchEvent(new TimelineEvent(TimelineEvent.RANGE_SELECT, { time: 0, range: undefined }, { bubbles: true, composed: true }));
         this._notes = data;
         this.duration = data.reduce((max, note) => Math.max(max, note.time + note.duration), 0);
         this.requestUpdate();
@@ -40,11 +42,12 @@ let TimelineView = class TimelineView extends LitElement {
         this.addEventListener('pointerdown', this.onPointerDown.bind(this));
         this.addEventListener('pointermove', this.onPointerMove.bind(this));
         document.body.addEventListener('pointerup', () => {
-            if (this.isSelecting && this.selectionRange && !this.pendingSeek) {
-                this.selectionRange = this.selectionRange.sort((a, b) => a - b);
-                this.dispatchEvent(new TimelineEvent(TimelineEvent.RANGE_SELECT, { time: this.selectionRange[0], range: this.selectionRange }, { bubbles: true, composed: true }));
+            const range = this.selectionRange.sort((a, b) => a - b);
+            if (this.isSelecting && range && range[0] !== range[1] && !this.pendingSeek) {
+                this.dispatchEvent(new TimelineEvent(TimelineEvent.RANGE_SELECT, { time: range[0], range: range }, { bubbles: true, composed: true }));
             }
             else if (this.pendingSeek) {
+                this.currentTime = this.pendingSeek;
                 this.dispatchEvent(new TimelineEvent(TimelineEvent.SEEK, { time: this.pendingSeek }, { bubbles: true, composed: true }));
                 this.pendingSeek = undefined;
             }
@@ -59,6 +62,9 @@ let TimelineView = class TimelineView extends LitElement {
         const x = e.clientX - (this.bounds?.left || 0) + this.scrollLeft;
         const beat = Math.floor(x / this.pixelsPerBeat);
         this.pendingSeek = beat;
+        if (this.selectionRange[0] !== undefined && this.selectionRange[1] !== undefined) {
+            this.dispatchEvent(new TimelineEvent(TimelineEvent.RANGE_SELECT, { time: 0, range: undefined }, { bubbles: true, composed: true }));
+        }
         this.selectionRange = [beat, undefined];
         this.requestUpdate();
     }
@@ -79,7 +85,7 @@ let TimelineView = class TimelineView extends LitElement {
             this.requestUpdate();
             return;
         }
-        if (this.isSelecting && this.selectionRange) {
+        if (this.isSelecting && this.selectionRange && this.selectionRange[0] !== Math.floor(x / this.pixelsPerBeat)) {
             this.selectionRange[1] = Math.floor(x / this.pixelsPerBeat);
             this.pendingSeek = undefined;
             this.requestUpdate();

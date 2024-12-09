@@ -20,6 +20,9 @@ let Timeline = Timeline_1 = class Timeline extends LitElement {
         this.pixelsPerBeat = 20;
     }
     set midiTrack(track) {
+        if (this._midiTrack?.uuid === track?.uuid) {
+            return;
+        }
         this._midiTrack = track;
         if (this.timelineView) {
             this.timelineView.sequence = this._midiTrack?.sequence || [];

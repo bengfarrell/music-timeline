@@ -7,9 +7,20 @@ const defaultBPM = 120;
 export class MIDITrack {
     protected timeMeta: TimeMeta = {};
 
+    uuid = crypto.randomUUID();
+
     events: NoteEvent[] = [];
     name: string = '';
     noteRange: [number, number] = [0, 0];
+
+    static clone(track: MIDITrack, fallbackName?: string) {
+        const t = new MIDITrack();
+        t.events = track.events.map(e => Object.assign({}, e));
+        t.timeMeta = Object.assign({}, track.timeMeta);
+        t.name = track.name ? track.name : fallbackName || '';
+        t.noteRange = [track.noteRange[0], track.noteRange[1]];
+        return t;
+    }
 
     static fromMIDI(events: any[]): MIDITrack {
         const t = new MIDITrack();
@@ -63,6 +74,23 @@ export class MIDITrack {
     }
 
     get beatRange() { return [ 0, Math.ceil(this.timeMeta.duration || 0) ]; }
+
+    clone(fallbackName?: string) { return MIDITrack.clone(this, fallbackName); }
+
+    trim(start: number, end: number) {
+        this.events = this.events.filter(e => e.time >= start && e.time <= end);
+
+        // Adjust the duration of the last event if it extends past the end
+        if (this.events[this.events.length - 1].time + this.events[this.events.length - 1].duration > end) {
+            this.events[this.events.length - 1].duration = end - this.events[this.events.length - 1].time;
+        }
+
+        // Adjust the time of all events to be relative to the start
+        this.events.forEach((e) => e.time -= start);
+
+        this.timeMeta.duration = this.events[this.events.length - 1].time + this.events[this.events.length - 1].duration;
+        this.processTrack();
+    }
 
     parseMIDI(events: any[]) {
         let absTime = 0;

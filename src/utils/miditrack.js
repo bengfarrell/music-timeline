@@ -3,9 +3,18 @@ const defaultBPM = 120;
 export class MIDITrack {
     constructor() {
         this.timeMeta = {};
+        this.uuid = crypto.randomUUID();
         this.events = [];
         this.name = '';
         this.noteRange = [0, 0];
+    }
+    static clone(track, fallbackName) {
+        const t = new MIDITrack();
+        t.events = track.events.map(e => Object.assign({}, e));
+        t.timeMeta = Object.assign({}, track.timeMeta);
+        t.name = track.name ? track.name : fallbackName || '';
+        t.noteRange = [track.noteRange[0], track.noteRange[1]];
+        return t;
     }
     static fromMIDI(events) {
         const t = new MIDITrack();
@@ -50,6 +59,7 @@ export class MIDITrack {
         return this.timeMeta.timeSignature || defaultTimeSignature;
     }
     get beatRange() { return [0, Math.ceil(this.timeMeta.duration || 0)]; }
+    clone(fallbackName) { return MIDITrack.clone(this, fallbackName); }
     parseMIDI(events) {
         let absTime = 0;
         const downNotes = [];

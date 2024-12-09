@@ -31,17 +31,18 @@ export class BasePlayback extends EventEmitter implements ReactiveController {
     protected synth?: Tone.PolySynth;
     protected _sequence: NoteEvent[] = [];
 
-    attach(host: ReactiveElement) {
+    attachHost(host: ReactiveElement) {
         host.addController(this);
         this.hosts.push(host);
+        return this;
     }
 
     hostConnected() {}
 
     hostDisconnected() {}
 
-    set sequence(_events: NoteEvent[]) {
-        this._sequence = _events;
+    set sequence(events: NoteEvent[]) {
+        this._sequence = events;
     }
 
     get duration() {
@@ -86,6 +87,12 @@ export class BasePlayback extends EventEmitter implements ReactiveController {
         this._start = start;
         this._isLooping = true;
         this.seek(start);
+    }
+
+    cancelLoop() {
+        this._isLooping = false;
+        this._end = undefined;
+        this._start = 0;
     }
 
     get isPlaying() { return this._isPlaying; }

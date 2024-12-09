@@ -4,6 +4,10 @@ import { style } from './timeline-view.css';
 import { NoteEvent } from '../utils';
 import { Timeline } from '../timeline';
 
+/**
+ * TODO: Evaluate if this component needs to know BPM. Also if component should render timeline that is BPM independent.
+ */
+
 export class TimelineEvent extends Event {
     static NOTE_HOVER = 'notehover';
     static SEEK = 'seek';
@@ -60,6 +64,9 @@ export class TimelineView extends LitElement {
     selectionRange: [number | undefined, number | undefined] = [ undefined, undefined ];
 
     set sequence(data: NoteEvent[]) {
+        this.currentTime = 0;
+        this.selectionRange = [undefined, undefined];
+        this.dispatchEvent(new TimelineEvent(TimelineEvent.RANGE_SELECT, { time: 0, range: undefined }, { bubbles: true, composed: true }));
         this._notes = data;
         this.duration = data.reduce((max, note) => Math.max(max, note.time + note.duration), 0);
         this.requestUpdate();
@@ -89,6 +96,10 @@ export class TimelineView extends LitElement {
         const x = e.clientX - (this.bounds?.left || 0) + this.scrollLeft;
         const beat = Math.floor(x / this.pixelsPerBeat);
         this.pendingSeek = beat;
+
+        if (this.selectionRange[0] !== undefined && this.selectionRange[1] !== undefined) {
+            this.dispatchEvent(new TimelineEvent(TimelineEvent.RANGE_SELECT, { time: 0, range: undefined }, { bubbles: true, composed: true }));
+        }
         this.selectionRange = [beat, undefined];
         this.requestUpdate();
     }
