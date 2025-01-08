@@ -1,4 +1,4 @@
-import { html, LitElement } from 'lit';
+import { html, LitElement, PropertyValues } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
 import { style } from './timeline.css.js';
 import '../timeline-view/midi-timeline-view.js';
@@ -54,6 +54,14 @@ export class AudioTimeline extends LitElement {
         this.bounds = this.getBoundingClientRect();
     }
 
+    protected firstUpdated(_changedProperties: PropertyValues) {
+        super.firstUpdated(_changedProperties);
+        if (this.timelineView) {
+            this.timelineView.data = this._buffer;
+        }
+        this.requestUpdate();
+    }
+
     /**
      * TODO: We're assuming x/4 timing when passing beats per second - make this more robust in the future
      */
@@ -64,8 +72,7 @@ export class AudioTimeline extends LitElement {
                 currenttime=${this.currentTime}
                 pixelspersecond=${this.pixelsPerSecond}
                 beatspersecond=1
-                beatspermeasure=4
-                numbeats=${this.buffer?.duration}>
+                beatspermeasure=4>
             </mt-audio-view>`;
     }
 

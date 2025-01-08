@@ -1,4 +1,4 @@
-import { html, LitElement } from 'lit';
+import { html, LitElement, PropertyValues } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
 import { style } from './timeline.css.js';
 import '../timeline-view/midi-timeline-view.js';
@@ -63,6 +63,14 @@ export class MIDITimeline extends LitElement {
     connectedCallback() {
         super.connectedCallback();
         this.bounds = this.getBoundingClientRect();
+    }
+
+    protected firstUpdated(_changedProperties: PropertyValues) {
+        super.firstUpdated(_changedProperties);
+        if (this.timelineView) {
+            this.timelineView.data = this._midiTrack?.sequence || [];
+        }
+        this.requestUpdate();
     }
 
     /**

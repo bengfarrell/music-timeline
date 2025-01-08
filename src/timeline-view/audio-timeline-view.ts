@@ -13,27 +13,27 @@ export class AudioTimelineView extends BaseTimelineView {
 
     protected smoothing = 0.8;
 
+    protected waveformRendered = false;
+
     @property({ type: String })
     waveformColor = 'white';
 
     set data(data: AudioBuffer | undefined) {
         super.data = data;
         this.buffer = data as AudioBuffer;
-
-        const channelData = [];
-        for (let i = 0; i < this.buffer.numberOfChannels; i++) {
-            channelData.push(this.buffer.getChannelData(i));
-        }
-
-        this.renderWaveform(channelData);
+        this.waveformRendered = false;
     }
 
     get duration() {
         return this.buffer ? this.buffer.duration : 0;
     }
 
-    async renderWaveform(source: Float32Array[]) {
+    async renderWaveform() {
         if (this.buffer && this.rendered) {
+            const source = [];
+            for (let i = 0; i < this.buffer.numberOfChannels; i++) {
+                source.push(this.buffer.getChannelData(i));
+            }
             this.bounds = this.getBoundingClientRect();
             const height = this.bounds.height;
             const ttlPxWidth = this.buffer.duration * this.pixelsPerSecond;
@@ -70,10 +70,13 @@ export class AudioTimelineView extends BaseTimelineView {
                     ctx?.fillRect(i, height - amp * height, 1, amp * height);
                 }
             }
+            this.waveformRendered = true;
         }
     }
 
     protected render() {
+        if (!this.waveformRendered) this.renderWaveform();
+
         const range = this.selectionRange.slice().sort((a, b) => a! - b!);
         const drawRange = range[0] !== undefined && range[1] !== undefined && range[0] !== range[1];
         return html`
