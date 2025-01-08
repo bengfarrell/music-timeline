@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <script>
+        window.process = {
+            env: {
+                NODE_ENV: 'development',
+            },
+        };
+    </script>
+
+    <meta charset="utf-8" />
+    <title>MIDI Sequence Timeline</title>
+    <script src="../timeline/index.js" type="module"></script>
+    <script type="module">
+        import { Playback } from '../playback/miditimedplayback.js';
+        import { generateExample } from '../utils/index.js';
+        import { TimelineEvent } from '../timeline-view/index.js';
+
+        let channel = 'all';
+        let track = 0;
+
+        const timeline = document.querySelector('mt-midi');
+        let timer = null;
+
+        timeline.addEventListener(TimelineEvent.SEEK, (e) => {
+            Playback.seek(e.time);
+        });
+
+        timeline.addEventListener(TimelineEvent.RANGE_SELECT, (e) => {
+            if (e.range) {
+                Playback.loop(...e.range);
+            } else {
+                Playback.cancelLoop();
+            }
+        });
+
+        if (timeline.track) {
+            Playback.data = timeline.track.sequence;
+        }
+        timeline.addEventListener('loaded', () => {
+            document.getElementById('channels').innerHTML = '';
+            timeline.midi.tracks.forEach((track, i) => {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = `Track ${i}`;
+                document.getElementById('tracks').appendChild(option);
+            });
+
+            document.getElementById('channels').innerHTML = '<option value="all">All Channels</option>';
+            timeline.midi.tracks[0].channels.forEach((ch, i) => {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = `Channel ${i}`;
+                document.getElementById('channels').appendChild(option);
+            });
+            document.getElementById('channels').value = channel;
+
+            Playback.data = timeline.track.sequence;
+        });
+
+
+        document.getElementById('play').addEventListener('click', async () => {
+            Playback.play();
+            if (timer) {
+                clearInterval(timer);
+            }
+            timer = setInterval(() => {
+                timeline.currentTime = Playback.currentTime;
+            }, 100);
+        });
+
+        document.getElementById('rate').addEventListener('change', (e) => {
+            Playback.rate = e.target.value;
+        });
+
+        document.getElementById('pause').addEventListener('click', () => {
+            Playback.pause();
+        });
+
+        document.getElementById('channels').addEventListener('change', (e) => {
+            channel = e.target.value;
+            if (channel === 'all') {
+                document.body.querySelector('mt-midi').removeAttribute('channelnum');
+            } else {
+                document.body.querySelector('mt-midi').setAttribute('channelnum', channel);
+            }
+        });
+        document.getElementById('tracks').addEventListener('change', (e) => {
+            track = e.target.value;
+            document.body.querySelector('mt-midi').setAttribute('tracknum', track);
+        });
+        //document.getElementById('timeline').midiTrack = generateExample();
+    </script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<p>
+    <label>Tracks</label>
+    <select id="tracks"></select>
+</p>
+
+<p>
+    <label>Channels</label>
+    <select id="channels"></select>
+</p>
+<button id="play">Play</button>
+<button id="pause">Pause</button>
+<label>Rate</label>
+<input id="rate" type="number" min="0.1" value="1" max="5" step="0.1" />
+<br/><br/>
+
+<!--<mt-midi id="timeline"></mt-midi>-->
+<mt-midi src="samples/cheers.mid" channelnum="0" tracknum="0"></mt-midi>
+</body>
+</html>

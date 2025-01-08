@@ -5,6 +5,14 @@ export const style = css`
         width: 100%;
         overflow-x: auto;
         position: relative;
+        display: inline-block;
+    }
+    
+    #rendered {
+        display: inline-block;
+        background-repeat: no-repeat;
+        width: 100%;
+        height: 100%;
     }
 
     #selection-box {

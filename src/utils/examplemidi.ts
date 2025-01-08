@@ -18,6 +18,8 @@ export const generateExample = (iterations: number = 100) => {
                 numerator: 4,
                 denominator: 4
             },
-            division: bpm
+            division: bpm,
+            tempo: 60 * 1000000 / bpm,
+            duration: iterations
         });
 };

@@ -19,17 +19,16 @@ export class BasePlayback extends EventEmitter implements ReactiveController {
     protected hosts: ReactiveElement[] = [];
 
     protected playbackRate = 1;
-    protected _currentTime = 0;
 
     protected _isPlaying = false;
     protected _isPaused = false;
     protected _isLooping = false;
 
-    protected _start = 0;
-    protected _end?: number;
+    protected _loopStart = 0;
+    protected _loopEnd: number = 0;
 
     protected synth?: Tone.PolySynth;
-    protected _sequence: NoteEvent[] = [];
+    protected _data: NoteEvent[] = [];
 
     attachHost(host: ReactiveElement) {
         host.addController(this);
@@ -41,20 +40,15 @@ export class BasePlayback extends EventEmitter implements ReactiveController {
 
     hostDisconnected() {}
 
-    set sequence(events: NoteEvent[]) {
-        this._sequence = events;
-    }
+    set data(_events: NoteEvent[] | AudioBuffer) {}
 
     get duration() {
-        if (this._end) return this._end - this._start;
-        return Math.ceil(this._sequence[this._sequence.length - 1].time + this._sequence[this._sequence.length - 1].duration) || 0;
+        return 0;
     }
 
     play() {}
 
-    seek(time: number) {
-        this._currentTime = time;
-    }
+    seek(_time: number) {}
 
     async pause() {
         this._isPaused = true;
@@ -70,7 +64,7 @@ export class BasePlayback extends EventEmitter implements ReactiveController {
     }
 
     get currentTime() {
-        return this._currentTime;
+        return 0;
     }
 
     set rate(val: number) {
@@ -83,16 +77,20 @@ export class BasePlayback extends EventEmitter implements ReactiveController {
     get rate() { return this.playbackRate; }
 
     loop(start: number, end: number) {
-        this._end = end;
-        this._start = start;
-        this._isLooping = true;
-        this.seek(start);
+        if (start === undefined || end === undefined) {
+            this.cancelLoop();
+        } else {
+            this._loopEnd = end;
+            this._loopStart = start;
+            this._isLooping = true;
+            this.seek(start);
+        }
     }
 
     cancelLoop() {
         this._isLooping = false;
-        this._end = undefined;
-        this._start = 0;
+        this._loopEnd = 0;
+        this._loopStart = 0;
     }
 
     get isPlaying() { return this._isPlaying; }

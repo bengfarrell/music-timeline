@@ -1,0 +1,16 @@
+body {
+    padding: 25px;
+    background-color: #333;
+    width: calc(100% - 50px);
+    height: 100vh;
+    overflow: hidden;
+}
+:root {
+    color-scheme: dark;
+}
+
+mt-midi,
+mt-audio {
+    width: 80%;
+    height: 60%;
+}

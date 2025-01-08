@@ -2,9 +2,9 @@ import { LitElement, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { style } from './notetray.css.js';
 import { getNotations } from '../utils/music.js';
-import { Timeline } from '../timeline/timeline.js';
+import { MIDITimeline } from '../timeline/midi-timeline.js';
 
-@customElement('ms-note-tray')
+@customElement('mt-note-tray')
 export class NoteTray extends LitElement {
     static styles = style;
 
@@ -21,7 +21,7 @@ export class NoteTray extends LitElement {
 
     constructor() {
         super();
-        this.style.setProperty('--top-gutter', `${Timeline.TOP_GUTTER}px`);
+        this.style.setProperty('--top-gutter', `${MIDITimeline.TOP_GUTTER}px`);
     }
 
     protected render() {

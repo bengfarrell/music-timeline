@@ -5,7 +5,8 @@ export const style = css`
         display: flex;
     }
     
-    ms-timeline-view {
+    mt-midi-view,
+    mt-audio-view {
         display: flex;
     }
 `;

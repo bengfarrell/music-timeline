@@ -1,17 +1,20 @@
-import { TimeMeta, TimeSignature } from './midifile.js';
+import { defaultTimeMeta, TimeMeta } from './midifile.js';
 import { NoteEvent } from './noteevent.js';
 
-const defaultTimeSignature: TimeSignature = { numerator: 4, denominator: 4 };
-const defaultBPM = 120;
+export function MIDITicksToSecs(ticks: number, mcspq: number, division: number) {
+    return ticks * mcspq / division / 1000000;
+}
 
 export class MIDITrack {
-    protected timeMeta: TimeMeta = {};
+    timeMeta: TimeMeta = Object.assign({}, defaultTimeMeta);
 
     uuid = crypto.randomUUID();
 
     events: NoteEvent[] = [];
     name: string = '';
     noteRange: [number, number] = [0, 0];
+    channels: number[] = [];
+    rendered: string = '';
 
     static clone(track: MIDITrack, fallbackName?: string) {
         const t = new MIDITrack();
@@ -22,9 +25,21 @@ export class MIDITrack {
         return t;
     }
 
-    static fromMIDI(events: any[]): MIDITrack {
+    static isolateChannelsFromTrack(track: MIDITrack, channels: number | number[]) {
+        if (!Array.isArray(channels)) {
+            channels = [channels];
+        }
+        const clone = MIDITrack.clone(track, track.name + ' - Channel ' + channels.join(', '));
+        clone.events = clone.events.slice().filter(e => e.channel && (channels as number[]).indexOf(e.channel) !== -1);
+        clone.processTrack();
+        return clone;
+    }
+
+    static fromMIDI(events: any[], time: TimeMeta): MIDITrack {
         const t = new MIDITrack();
         t.parseMIDI(events);
+        if (time.division && !t.timeMeta.division) t.timeMeta.division = time.division;
+        if (time.tempo && !t.timeMeta.tempo) t.timeMeta.tempo = time.tempo;
         return t;
     }
 
@@ -37,45 +52,30 @@ export class MIDITrack {
         return t;
     }
 
-    get hasTimingInfo() {
-        return this.timeMeta.tempo !== undefined || this.timeMeta.timeSignature !== undefined;
-    }
+    get sequence() { return this.sequenceAtTempo(this.timeMeta.tempo, this.timeMeta.division); }
 
-    get sequence() { return this.sequenceAtBPM(this.BPM); }
+    get duration() { return (this.timeMeta.duration || 0) / this.timeMeta.tempo }
 
-    get duration() { return (this.timeMeta.duration || 0) / this.BPM }
-
-    sequenceAtBPM(bpm: number) {
-        return this.events.map(e => {
+    sequenceAtTempo(tempo: number, division: number) {
+        // TODO: may have a sequence of tempos, even in the first track as a data track to be applied here?
+        return this.events.slice().map(e => {
             return {
-                time: e.time / bpm,
+                time: MIDITicksToSecs(e.time, tempo, division),
                 note: e.note,
-                duration: e.duration / bpm,
-                velocity: e.velocity }; });
+                channel: e.channel,
+                duration: MIDITicksToSecs(e.duration, tempo, division),
+                velocity: e.velocity } as NoteEvent; });
     }
-
-    get BPM() {
-        if (this.timeMeta.tempo && this.timeMeta.division) {
-            return this.timeMeta.division / (this.timeMeta.tempo / 1000000);
-        }
-        if (this.timeMeta.division) {
-            return this.timeMeta.division
-        }
-        return defaultBPM;
-    }
-
-    get tempo() { return this.timeMeta.tempo }
-
-
-    set tempo(val) { this.timeMeta.tempo = val; }
 
     get timeSignature() {
-        return this.timeMeta.timeSignature || defaultTimeSignature;
+        return this.timeMeta.timeSignature;
     }
 
     get beatRange() { return [ 0, Math.ceil(this.timeMeta.duration || 0) ]; }
 
     clone(fallbackName?: string) { return MIDITrack.clone(this, fallbackName); }
+
+    isolateChannelsFromTrack(channels: number | number[]) { MIDITrack.isolateChannelsFromTrack(this, channels); }
 
     trim(start: number, end: number) {
         this.events = this.events.filter(e => e.time >= start && e.time <= end);
@@ -90,6 +90,20 @@ export class MIDITrack {
 
         this.timeMeta.duration = this.events[this.events.length - 1].time + this.events[this.events.length - 1].duration;
         this.processTrack();
+    }
+
+    async renderTrackAsBitmap(width: number, height: number, color: string) {
+        const c = new OffscreenCanvas(width, height);
+        const ctx = c.getContext('2d');
+        if (ctx) {
+            ctx.fillStyle = color;
+            this.events.forEach((e) => {
+                ctx.beginPath();
+                ctx.roundRect(e.time / 10,  e.note - this.noteRange[0], e.duration / 10, 2, 5);
+                ctx.fill();
+            });
+        }
+        this.rendered = URL.createObjectURL(await c.convertToBlob());
     }
 
     parseMIDI(events: any[]) {
@@ -111,9 +125,13 @@ export class MIDITrack {
                     duration: 0,
                     delta: event.delta,
                     note: event.noteOn.noteNumber,
-                    channel: event.noteOn.channel,
+                    channel: event.channel,
                     velocity: event.noteOn.velocity
                 };
+                if (this.channels.indexOf(event.channel) === -1) {
+                    this.channels.push(event.channel);
+                    this.channels.sort((a, b) => a - b);
+                }
                 this.events.push(noteEvent);
                 downNotes.push(noteEvent);
             }
@@ -128,18 +146,6 @@ export class MIDITrack {
         });
         this.timeMeta.duration = absTime;
         this.processTrack();
-    }
-
-    populateMissingTimeData(time: TimeMeta) {
-        if (this.timeMeta.division === undefined) {
-            this.timeMeta.division = time.division;
-        }
-        if (this.timeMeta.timeSignature === undefined) {
-            this.timeMeta.timeSignature = Object.assign({}, time.timeSignature);
-        }
-        if (this.timeMeta.tempo === undefined) {
-            this.timeMeta.tempo = time.tempo;
-        }
     }
 
     protected processTrack() {
