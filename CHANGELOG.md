@@ -1,4 +1,4 @@
-### v0.2.1 (2025-1-12)
+### v0.2.2 (2025-1-12)
 - Break out waveform rendering to be imported externally from this library
 
 ### v0.2.0 (2025-1-07)

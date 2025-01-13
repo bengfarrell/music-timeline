@@ -1,7 +1,7 @@
 import { html } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
 import { BaseTimelineView } from './base-timeline-view.js';
-import { renderWaveform } from '../utils/renderwaveform';
+import { renderWaveform } from '../utils/renderwaveform.js';
 
 @customElement('mt-audio-view')
 export class AudioTimelineView extends BaseTimelineView {
