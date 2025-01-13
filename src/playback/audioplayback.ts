@@ -45,7 +45,7 @@ export class AudioPlayback extends BasePlayback {
         this.dispatchEvent(new PlayStateChangeEvent());
     }
 
-    async startPlayback(time = 0) {
+    protected async startPlayback(time = 0) {
         if (this.buffer) {
             if (this.context) await this.context.close();
             this.context = new AudioContext();

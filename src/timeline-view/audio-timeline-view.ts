@@ -1,6 +1,7 @@
 import { html } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
 import { BaseTimelineView } from './base-timeline-view.js';
+import { renderWaveform } from '../utils/renderwaveform';
 
 @customElement('mt-audio-view')
 export class AudioTimelineView extends BaseTimelineView {
@@ -42,34 +43,7 @@ export class AudioTimelineView extends BaseTimelineView {
             this.rendered.height = height;
             const ctx = this.rendered.getContext('2d') as CanvasRenderingContext2D;
             ctx.fillStyle = this.waveformColor;
-
-            const step = Math.ceil(this.buffer.length / ttlPxWidth);
-
-            // below approach adapted from https://github.com/meandavejustice/draw-wave/blob/master/index.js
-            const firstChannel = source[0];
-            let lastDrawnAmplitude;
-            for (let i = 0; i < ttlPxWidth; i++) {
-                let min = 1.0;
-                let max = -1.0;
-                for (let j = 0; j < step; j++) {
-                    const datum = firstChannel[(i * step) + j] || 0;
-                    if (datum < min)
-                        min = datum;
-                    if (datum > max)
-                        max = datum;
-                }
-
-                if (!lastDrawnAmplitude) {
-                    lastDrawnAmplitude = Math.min(1, max - min * this.ampScale);
-                }
-
-                //console.log('min', min, 'max', max, 'lastDrawnAmplitude', lastDrawnAmplitude);
-                const amp = Math.max(Math.min(Math.min(1, max - min * this.ampScale), lastDrawnAmplitude * (1 + (1 - this.smoothing))), lastDrawnAmplitude * (1 - (1 - this.smoothing)));
-                if (amp > 0) {
-                    lastDrawnAmplitude = amp;
-                    ctx?.fillRect(i, height - amp * height, 1, amp * height);
-                }
-            }
+            renderWaveform(ctx, ttlPxWidth, height, source, this.ampScale, this.smoothing);
             this.waveformRendered = true;
         }
     }
