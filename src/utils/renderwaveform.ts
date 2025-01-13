@@ -1,4 +1,4 @@
-export const renderWaveform = (ctx: CanvasRenderingContext2D, width: number, height: number, samples: Float32Array[], ampScale: number = 1, smoothing: number = 0) => {
+export const renderWaveform = (ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, width: number, height: number, samples: Float32Array[], ampScale: number = 1, smoothing: number = 0) => {
     const step = Math.ceil(samples[0].length / width);
 
     // below approach adapted from https://github.com/meandavejustice/draw-wave/blob/master/index.js
