@@ -28,13 +28,13 @@ export class AudioPlayback extends BasePlayback {
         if (this.audioSource) this.audioSource.playbackRate.value = val;
     }
 
-    play() {
+    async play() {
         if (!this.isPlaying && !this.isPaused) {
-            this.startPlayback(this.pendingSeek || 0);
+            await this.startPlayback(this.pendingSeek || 0);
             this._isPlaying = true;
             this._isPaused = false;
         } else if (this.isPaused) {
-            this.context?.resume();
+            await this.context?.resume();
             this._isPaused = false;
             this._isPlaying = true;
         }
@@ -47,7 +47,10 @@ export class AudioPlayback extends BasePlayback {
 
     protected async startPlayback(time = 0) {
         if (this.buffer) {
-            if (this.context) await this.context.close();
+            if (this.context) {
+                await this.context.close();
+                this.context = undefined;
+            }
             this.context = new AudioContext();
             this.audioSource = this.context.createBufferSource();
             this.audioSource.loop = this.isLooping;
@@ -68,9 +71,9 @@ export class AudioPlayback extends BasePlayback {
         }
     }
 
-    seek(time: number) {
+    async seek(time: number) {
         if (this.buffer && this.isPlaying) {
-            this.startPlayback(time);
+            await this.startPlayback(time);
         } else {
             this.pendingSeek = time;
         }
@@ -87,6 +90,7 @@ export class AudioPlayback extends BasePlayback {
 
     async stop() {
         await this.context?.close();
+        this.context = undefined;
         await super.stop();
     }
 

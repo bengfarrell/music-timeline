@@ -1,3 +1,6 @@
+### v0.2.5 (2025-1-13)
+- Fix audio player usage to properly shut down when stopped and better handle switching sources
+
 ### v0.2.2 (2025-1-12)
 - Break out waveform rendering to be imported externally from this library
 
