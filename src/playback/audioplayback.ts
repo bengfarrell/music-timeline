@@ -30,13 +30,13 @@ export class AudioPlayback extends BasePlayback {
 
     async play() {
         if (!this.isPlaying && !this.isPaused) {
+            this._isPlaying = true;
+            this._isPaused = false;
             await this.startPlayback(this.pendingSeek || 0);
-            this._isPlaying = true;
-            this._isPaused = false;
         } else if (this.isPaused) {
-            await this.context?.resume();
             this._isPaused = false;
             this._isPlaying = true;
+            await this.context?.resume();
         }
 
         this.hosts.forEach(host => {
@@ -86,12 +86,14 @@ export class AudioPlayback extends BasePlayback {
     async pause() {
         await super.pause();
         await this.context?.suspend();
+        this.dispatchEvent(new PlayStateChangeEvent());
     }
 
     async stop() {
         await this.context?.close();
         this.context = undefined;
         await super.stop();
+        this.dispatchEvent(new PlayStateChangeEvent());
     }
 
     cancelLoop() {

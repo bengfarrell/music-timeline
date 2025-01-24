@@ -1,4 +1,4 @@
-import { html } from 'lit';
+import { html, PropertyValues } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
 import { BaseTimelineView } from './base-timeline-view.js';
 import { renderWaveform } from '../utils/renderwaveform.js';
@@ -8,7 +8,7 @@ export class AudioTimelineView extends BaseTimelineView {
     @query('#rendered')
     rendered?: HTMLCanvasElement;
 
-    buffer?: AudioBuffer;
+    _buffer?: AudioBuffer;
 
     protected ampScale = 1;
 
@@ -19,10 +19,15 @@ export class AudioTimelineView extends BaseTimelineView {
     @property({ type: String })
     waveformColor = 'white';
 
-    set data(data: AudioBuffer | undefined) {
+    set buffer(data: AudioBuffer | undefined) {
         super.data = data;
-        this.buffer = data as AudioBuffer;
+        this._buffer = data;
         this.waveformRendered = false;
+        if (!this.waveformRendered) this.renderWaveform();
+    }
+
+    get buffer() {
+        return this._buffer;
     }
 
     get duration() {
@@ -48,9 +53,12 @@ export class AudioTimelineView extends BaseTimelineView {
         }
     }
 
-    protected render() {
+    protected firstUpdated(_changedProperties: PropertyValues) {
+        super.firstUpdated(_changedProperties);
         if (!this.waveformRendered) this.renderWaveform();
+    }
 
+    protected render() {
         const range = this.selectionRange.slice().sort((a, b) => a! - b!);
         const drawRange = range[0] !== undefined && range[1] !== undefined && range[0] !== range[1];
         return html`

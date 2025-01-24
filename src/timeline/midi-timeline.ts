@@ -47,6 +47,13 @@ export class MIDITimeline extends LitElement {
         this.requestUpdate();
     }
 
+    refresh() {
+        if (this.timelineView) {
+            this.timelineView.data = this._midiTrack?.sequence || [];
+        }
+        this.requestUpdate();
+    }
+
     get midiTrack() {
         return this._midiTrack;
     }

@@ -1,6 +1,7 @@
 import { NoteEvent, getNotation } from '../utils';
 import * as Tone from 'tone';
 import { BasePlayback, PlayStateChangeEvent } from './baseplayback';
+import { Sampler } from 'tone';
 
 /**
  * Playback controller for MIDI playback
@@ -12,11 +13,80 @@ export class MIDITimedPlayback extends BasePlayback {
     static LOOKAHEAD = 0.2;
     protected _lastTick = 0;
     protected _currentTime = 0;
+    protected _transpose = 0;
 
     protected _noteBuffer: NoteEvent[] = [];
 
+    protected _synth?: Tone.PolySynth | Sampler;
+
     set data(events: NoteEvent[]) {
         this._data = events;
+        this._noteBuffer = [];
+    }
+
+    set transpose(val: number) {
+        this._transpose = val;
+        this.hosts.forEach(host => {
+            host.requestUpdate();
+        });
+    }
+
+    get transpose() {
+        return this._transpose;
+    }
+
+    set synth(synth: Tone.PolySynth | string) {
+        if (typeof synth === 'string') {
+            switch (synth) {
+                case 'poly-synth':
+                    this._synth = new Tone.PolySynth(Tone.Synth).toDestination();
+                    break;
+                case 'sampled-piano':
+                    this._synth = new Tone.Sampler({
+                        urls: {
+                            C4: "C4.mp3",
+                            "D#4": "Ds4.mp3",
+                            "F#4": "Fs4.mp3",
+                            A4: "A4.mp3",
+                        },
+                        release: 1,
+                        baseUrl: "https://tonejs.github.io/audio/salamander/",
+                    }).toDestination();
+                    break;
+                case 'piano':
+                    this._synth = new Tone.PolySynth(Tone.FMSynth, {
+                        harmonicity: 3,
+                        modulationIndex: 10,
+                        detune: 0,
+                        oscillator: {
+                            type: 'sine'
+                        },
+                        envelope: {
+                            attack: 0.01,
+                            decay: 0.2,
+                            sustain: 0.2,
+                            release: 0.2
+                        },
+                        modulation: {
+                            type: 'sine'
+                        },
+                        modulationEnvelope: {
+                            attack: 0.01,
+                            decay: 0.2,
+                            sustain: 0.2,
+                            release: 0.2
+                        }
+                    }).toDestination();
+                    break;
+            }
+        } else {
+            this._synth = synth;
+        }
+    }
+
+    refresh() {
+        super.refresh();
+        this._noteBuffer = [];
     }
 
     get duration() {
@@ -65,8 +135,8 @@ export class MIDITimedPlayback extends BasePlayback {
             const event = this._noteBuffer.shift();
             if (event) {
                 const now = Tone.now();
-                this.synth?.triggerAttackRelease(
-                    getNotation(event.note),
+                this._synth?.triggerAttackRelease(
+                    getNotation(event.note + this._transpose),
                     event.duration, now + Math.max(0, next.time - this._currentTime),
                     event.velocity / 127);
             }

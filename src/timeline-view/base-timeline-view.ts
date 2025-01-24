@@ -2,7 +2,7 @@ import { LitElement, html } from 'lit';
 import { property } from 'lit/decorators.js';
 import { style } from './timeline-view.css';
 import { NoteEvent } from '../utils';
-import { TimelineEvent } from './timelineevent';
+import { RangeSelectEvent, TimelineEvent } from './timelineevent';
 
 export class BaseTimelineView extends LitElement {
     static styles = style;
@@ -32,19 +32,12 @@ export class BaseTimelineView extends LitElement {
     selectionRange: [number | undefined, number | undefined] = [ undefined, undefined ];
 
     set data(_data: NoteEvent[] | AudioBuffer | undefined) {
-        this.currentTime = 0;
-        if (this.selectionRange[0] !== undefined && this.selectionRange[1] !== undefined) {
-            // clear selection range if active
-            this.selectionRange = [undefined, undefined];
-            this.dispatchEvent(new TimelineEvent(TimelineEvent.RANGE_SELECT, {
-                time: 0,
-                range: undefined
-            }, {bubbles: true, composed: true}));
-        }
         this.requestUpdate();
     }
 
     get duration() { return 0; }
+
+    refresh() { this.requestUpdate(); }
 
     constructor() {
         super();
@@ -53,7 +46,7 @@ export class BaseTimelineView extends LitElement {
         document.body.addEventListener('pointerup', () => {
             const range = this.selectionRange.sort((a, b) => a! - b!);
             if (this.isSelecting && range && range[0] !== range[1] && !this.pendingSeek) {
-                this.dispatchEvent(new TimelineEvent(TimelineEvent.RANGE_SELECT, { time: range[0]!, range: range as [number, number] }, { bubbles: true, composed: true }));
+                this.dispatchEvent(new RangeSelectEvent(range as [number, number], this.beatsPerSecond, { bubbles: true, composed: true }));
             } else if (this.pendingSeek){
                 this.currentTime = this.pendingSeek;
                 this.dispatchEvent(new TimelineEvent(TimelineEvent.SEEK, { time: this.pendingSeek }, { bubbles: true, composed: true }));
@@ -73,7 +66,7 @@ export class BaseTimelineView extends LitElement {
         this.pendingSeek = beat;
 
         if (this.selectionRange[0] !== undefined && this.selectionRange[1] !== undefined) {
-            this.dispatchEvent(new TimelineEvent(TimelineEvent.RANGE_SELECT, { time: 0, range: undefined }, { bubbles: true, composed: true }));
+            this.dispatchEvent(new RangeSelectEvent(undefined, this.beatsPerSecond, { bubbles: true, composed: true }));
         }
         this.selectionRange = [beat, undefined];
         this.requestUpdate();

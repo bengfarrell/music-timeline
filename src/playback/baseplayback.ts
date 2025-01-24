@@ -1,6 +1,5 @@
 import { ReactiveController, ReactiveElement } from 'lit';
 import { NoteEvent, EventEmitter } from '../utils';
-import * as Tone from 'tone';
 
 export class PlayStateChangeEvent extends Event {
     static readonly type = 'playstatechange';
@@ -27,7 +26,6 @@ export class BasePlayback extends EventEmitter implements ReactiveController {
     protected _loopStart = 0;
     protected _loopEnd: number = 0;
 
-    protected synth?: Tone.PolySynth;
     protected _data: NoteEvent[] = [];
 
     attachHost(host: ReactiveElement) {
@@ -41,6 +39,8 @@ export class BasePlayback extends EventEmitter implements ReactiveController {
     hostDisconnected() {}
 
     set data(_events: NoteEvent[] | AudioBuffer) {}
+
+    refresh() {}
 
     get duration() {
         return 0;

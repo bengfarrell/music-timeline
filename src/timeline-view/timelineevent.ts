@@ -1,17 +1,29 @@
 import { NoteEvent } from '../utils';
 
+export class RangeSelectEvent extends Event {
+    static type = 'rangeselect';
+
+    constructor(public range: [number, number] | undefined, public beatsPerSecond: number , eventInitDict?: EventInit) {
+        super(RangeSelectEvent.type, eventInitDict);
+    }
+
+    get rangeAsSeconds() {
+        if (this.range && this.beatsPerSecond) {
+            return [this.range[0] / this.beatsPerSecond, this.range[1] / this.beatsPerSecond];
+        }
+        return undefined;
+    }
+}
+
 export class TimelineEvent extends Event {
     static NOTE_HOVER = 'notehover';
     static SEEK = 'seek';
-    static RANGE_SELECT = 'rangeselect';
 
     public time: number;
     public note?: NoteEvent;
-    public range?: [number, number];
 
-    constructor(type: string, args: { time: number, note?: NoteEvent, range?: [number, number] }, eventInitDict?: EventInit) {
+    constructor(type: string, args: { time: number, note?: NoteEvent }, eventInitDict?: EventInit) {
         super(type, eventInitDict);
         this.time = args.time;
-        this.range = args.range;
     }
 }

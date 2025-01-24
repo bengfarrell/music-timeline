@@ -34,7 +34,7 @@ export class AudioTimeline extends LitElement {
     set buffer(data: AudioBuffer | undefined) {
         this._buffer = data;
         if (this.timelineView) {
-            this.timelineView.data = this._buffer;
+            this.timelineView.buffer = this._buffer;
         }
         this.dispatchEvent(new Event('loaded', { bubbles: true, composed: true }));
         this.requestUpdate();
@@ -57,7 +57,7 @@ export class AudioTimeline extends LitElement {
     protected firstUpdated(_changedProperties: PropertyValues) {
         super.firstUpdated(_changedProperties);
         if (this.timelineView) {
-            this.timelineView.data = this._buffer;
+            this.timelineView.buffer = this._buffer;
         }
         this.requestUpdate();
     }
@@ -80,7 +80,7 @@ export class AudioTimeline extends LitElement {
     protected async load(uri: string) {
         this._buffer = (await AudioFile.Load(uri))?.buffer;
         if (this.timelineView) {
-            this.timelineView.data = this._buffer;
+            this.timelineView.buffer = this._buffer;
         }
         this.dispatchEvent(new Event('loaded', { bubbles: true, composed: true }));
         this.requestUpdate();
