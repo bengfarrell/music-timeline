@@ -19,7 +19,7 @@ export class AudioPlayback extends BasePlayback {
     }
 
     get duration() {
-        if (this.isLooping) return (this._loopEnd - this._loopStart);
+        if (this.isLooping && this._loopStart !== undefined && this._loopEnd) return (this._loopEnd - this._loopStart);
         return (this.buffer?.duration || 0);
     }
 
@@ -57,14 +57,14 @@ export class AudioPlayback extends BasePlayback {
             this.audioSource.playbackRate.value = this.playbackRate;
             this.offsetStart = time;
             if (this.isLooping) {
-                this.audioSource.loopStart = this._loopStart;
-                this.audioSource.loopEnd = this._loopEnd;
+                this.audioSource.loopStart = this._loopStart || 0;
+                this.audioSource.loopEnd = this._loopEnd || this.duration;
             }
             this.audioSource.buffer = this.buffer
             this.audioSource.connect(this.context.destination);
 
             if (this.isLooping) {
-                this.audioSource?.start(0, this._loopStart);
+                this.audioSource?.start(0, this._loopStart || this.offsetStart);
             } else {
                 this.audioSource?.start(0, this.offsetStart, this.duration);
             }
@@ -80,7 +80,8 @@ export class AudioPlayback extends BasePlayback {
     }
 
     get currentTime() {
-        return ((this.context?.currentTime || 0) * this.playbackRate) % this.duration + this.offsetStart;
+        return ((this.context?.currentTime || 0) * this.playbackRate
+            + (this._loopStart ? 0 : this.offsetStart)) % this.duration + (this._loopStart || 0);
     }
 
     async pause() {
@@ -94,13 +95,6 @@ export class AudioPlayback extends BasePlayback {
         this.context = undefined;
         await super.stop();
         this.dispatchEvent(new PlayStateChangeEvent());
-    }
-
-    cancelLoop() {
-        super.cancelLoop();
-        if (this.isPlaying) {
-            this.seek(this.currentTime);
-        }
     }
 }
 

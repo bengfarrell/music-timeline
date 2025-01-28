@@ -6,11 +6,11 @@
     <title>Audio Timeline</title>
     <script src="../timeline/index.js" type="module"></script>
     <script type="module">
-        import { TimelineEvent } from '../timeline-view/index.js';
+        import { RangeSelectEvent, TimelineEvent } from '../timeline-view/index.js';
         import { Playback } from '../playback/audioplayback.js';
 
         let timer = null;
-        Playback.loop();
+        Playback.isLooping = true;
 
         const timeline = document.querySelector('mt-audio');
         timeline.addEventListener(TimelineEvent.SEEK, (e) => {
@@ -21,11 +21,11 @@
             Playback.data = timeline.buffer;
         });
 
-        timeline.addEventListener(TimelineEvent.RANGE_SELECT, (e) => {
+        timeline.addEventListener(RangeSelectEvent.type, (e) => {
             if (e.range) {
-                Playback.loop(...e.range);
+                Playback.loop(...e.rangeAsSeconds);
             } else {
-                Playback.cancelLoop();
+                Playback.clearLoopRange();
             }
         });
 
@@ -43,6 +43,18 @@
             Playback.rate = e.target.value;
         });
 
+        document.getElementById('bps').addEventListener('change', (e) => {
+            timeline.beatsPerSecond = Number(e.target.value);
+        });
+
+        document.getElementById('bpm').addEventListener('change', (e) => {
+            timeline.beatsPerMeasure = Number(e.target.value);
+        });
+
+        document.getElementById('beat-offset').addEventListener('change', (e) => {
+            timeline.beatOffsetSeconds = Number(e.target.value);
+        });
+
         document.getElementById('pause').addEventListener('click', () => {
             Playback.pause();
         });
@@ -55,6 +67,21 @@
 
 <button id="play">Play</button>
 <button id="pause">Pause</button>
+
+<br/><br/>
+<label>Beats per second</label>
+<input id="bps" type="number" min="0.1" value="1" max="10" step="0.1" />
+<br/><br/>
+
+<label>Beats per measure</label>
+<input id="bpm" type="number" min="1" value="4" max="16" step="1" />
+<br/><br/>
+
+<label>Beat offset (seconds)</label>
+<input id="beat-offset" type="number" min="-2" value="0" max="2" step=".1" />
+<br/><br/>
+
+
 <label>Rate</label>
 <input id="rate" type="number" min="0.1" value="1" max="5" step="0.1" />
 <br/><br/>

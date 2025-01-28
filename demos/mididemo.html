@@ -16,23 +16,24 @@
     <script type="module">
         import { Playback } from '../playback/miditimedplayback.js';
         import { generateExample } from '../utils/index.js';
-        import { TimelineEvent } from '../timeline-view/index.js';
+        import { TimelineEvent, RangeSelectEvent } from '../timeline-view/index.js';
 
         let channel = 'all';
         let track = 0;
 
         const timeline = document.querySelector('mt-midi');
         let timer = null;
+        Playback.isLooping = true;
 
         timeline.addEventListener(TimelineEvent.SEEK, (e) => {
             Playback.seek(e.time);
         });
 
-        timeline.addEventListener(TimelineEvent.RANGE_SELECT, (e) => {
+        timeline.addEventListener(RangeSelectEvent.type, (e) => {
             if (e.range) {
-                Playback.loop(...e.range);
+                Playback.loop(...e.rangeAsSeconds);
             } else {
-                Playback.cancelLoop();
+                Playback.clearLoopRange();
             }
         });
 

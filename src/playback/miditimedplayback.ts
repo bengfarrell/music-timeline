@@ -90,7 +90,7 @@ export class MIDITimedPlayback extends BasePlayback {
     }
 
     get duration() {
-        if (this.isLooping) return this._loopEnd - this._loopStart;
+        if (this.isLooping && this._loopStart && this._loopEnd) return (this._loopEnd - this._loopStart);
         return Math.ceil(this._data[this._data.length - 1].time + this._data[this._data.length - 1].duration) || 0;
     }
 
@@ -100,7 +100,7 @@ export class MIDITimedPlayback extends BasePlayback {
 
     play() {
         if (!this.synth) this.synth = new Tone.PolySynth(Tone.Synth).toDestination();
-        if (this._noteBuffer.length === 0) this._noteBuffer = this._data.filter(e => e.time >= this._currentTime && e.time <= this._loopStart + this.duration);
+        if (this._noteBuffer.length === 0) this._noteBuffer = this._data.filter(e => e.time >= this._currentTime && e.time <= (this._loopStart || 0) + this.duration);
 
         if (!this.isPlaying && !this.isPaused) {
             this._lastTick = Tone.now();
@@ -121,7 +121,7 @@ export class MIDITimedPlayback extends BasePlayback {
     }
 
     seek(time: number) {
-        this._noteBuffer = this._data.filter(e => e.time >= time && e.time <= this._loopStart + this.duration);
+        this._noteBuffer = this._data.filter(e => e.time >= time && e.time <= (this._loopStart || 0) + this.duration);
         this._currentTime = time;
         super.seek(time);
     }
@@ -141,9 +141,10 @@ export class MIDITimedPlayback extends BasePlayback {
                     event.velocity / 127);
             }
         }
-        if (this._currentTime >= this._loopStart + this.duration) {
+        if (this._currentTime >= (this._loopStart || 0) + this.duration) {
             if (this.isLooping) {
-                this.seek(this._loopStart);
+                console.log('loop')
+                this.seek(this._loopStart || 0);
             } else {
                 this._isPlaying = false;
             }

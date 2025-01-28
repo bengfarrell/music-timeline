@@ -1,3 +1,10 @@
+### v0.3.0 (2025-1-27)
+- Broke out range selection event to be its own thing
+- Add refresh methods to allow note array modification without having to set the whole track again
+- Choose synth and allow transpose on MIDI playback
+- Make grid lines editable with beats per measure, beats per second, and beat offset seconds
+- fix looping and range looping
+
 ### v0.2.5 (2025-1-13)
 - Fix audio player usage to properly shut down when stopped and better handle switching sources
 

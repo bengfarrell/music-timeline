@@ -19,6 +19,9 @@ export class BaseTimelineView extends LitElement {
     beatsPerMeasure: number = 0;
 
     @property({ type: Number })
+    beatOffsetSeconds = 0;
+
+    @property({ type: Number })
     currentTime: number = 0;
 
     protected markerDragging?: 'start' | 'end' | 'playback';
@@ -36,6 +39,10 @@ export class BaseTimelineView extends LitElement {
     }
 
     get duration() { return 0; }
+
+    get secondsPerBeat() {
+        return 1 / this.beatsPerSecond;
+    }
 
     refresh() { this.requestUpdate(); }
 
@@ -118,16 +125,16 @@ export class BaseTimelineView extends LitElement {
 
     protected renderGrid() {
         const ticks = [];
-        const numBeats = Math.ceil(this.duration / (1/this.beatsPerSecond));
+        const numBeats = Math.ceil(this.duration / this.secondsPerBeat);
         for (let c = 0; c < numBeats + 1; c++) {
-            const time = c * this.pixelsPerSecond;
+            const time = c * this.secondsPerBeat + this.beatOffsetSeconds % this.secondsPerBeat;
             const isHardTick = c % this.beatsPerMeasure === 0;
             if (isHardTick) {
                 ticks.push(html`
-                    <div class="hardTick" style="left: ${time}px"></div>`);
+                    <div class="hardTick" style="left: ${time * this.pixelsPerSecond}px"></div>`);
             } else {
                 ticks.push(html`
-                    <div class="softTick" style="left: ${time}px"></div>`);
+                    <div class="softTick" style="left: ${time * this.pixelsPerSecond}px"></div>`);
             }
         }
         return ticks;

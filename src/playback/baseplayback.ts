@@ -23,8 +23,8 @@ export class BasePlayback extends EventEmitter implements ReactiveController {
     protected _isPaused = false;
     protected _isLooping = false;
 
-    protected _loopStart = 0;
-    protected _loopEnd: number = 0;
+    protected _loopStart?: number;
+    protected _loopEnd?: number;
 
     protected _data: NoteEvent[] = [];
 
@@ -76,21 +76,22 @@ export class BasePlayback extends EventEmitter implements ReactiveController {
 
     get rate() { return this.playbackRate; }
 
-    loop(start: number, end: number) {
-        if (start === undefined || end === undefined) {
-            this.cancelLoop();
-        } else {
-            this._loopEnd = end;
-            this._loopStart = start;
-            this._isLooping = true;
+    loop(start?: number, end?: number) {
+        this._loopEnd = end;
+        this._loopStart = start;
+        this._isLooping = true;
+        if (start !== undefined) {
             this.seek(start);
         }
     }
 
-    cancelLoop() {
-        this._isLooping = false;
-        this._loopEnd = 0;
-        this._loopStart = 0;
+    clearLoopRange() {
+        this._loopStart = undefined;
+        this._loopEnd = undefined;
+    }
+
+    set isLooping(val: boolean) {
+        this._isLooping = val;
     }
 
     get isPlaying() { return this._isPlaying; }

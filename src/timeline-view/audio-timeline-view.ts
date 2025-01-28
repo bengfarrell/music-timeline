@@ -8,7 +8,7 @@ export class AudioTimelineView extends BaseTimelineView {
     @query('#rendered')
     rendered?: HTMLCanvasElement;
 
-    _buffer?: AudioBuffer;
+    protected _buffer?: AudioBuffer;
 
     protected ampScale = 1;
 
@@ -31,18 +31,18 @@ export class AudioTimelineView extends BaseTimelineView {
     }
 
     get duration() {
-        return this.buffer ? this.buffer.duration : 0;
+        return this._buffer ? this._buffer.duration : 0;
     }
 
     async renderWaveform() {
-        if (this.buffer && this.rendered) {
+        if (this._buffer && this.rendered) {
             const source = [];
-            for (let i = 0; i < this.buffer.numberOfChannels; i++) {
-                source.push(this.buffer.getChannelData(i));
+            for (let i = 0; i < this._buffer.numberOfChannels; i++) {
+                source.push(this._buffer.getChannelData(i));
             }
             this.bounds = this.getBoundingClientRect();
             const height = this.bounds.height;
-            const ttlPxWidth = this.buffer.duration * this.pixelsPerSecond;
+            const ttlPxWidth = this._buffer.duration * this.pixelsPerSecond;
             this.rendered.width = ttlPxWidth;
             this.rendered.style.width = `${ttlPxWidth}px`;
             this.rendered.height = height;
@@ -68,7 +68,7 @@ export class AudioTimelineView extends BaseTimelineView {
                         width: ${drawRange ? (range[1]! - range[0]!) * this.pixelsPerSecond : -100}px"
             ></div>
             ${this.renderGrid()}
-            ${this.buffer ? html`<div id="playback-line" style="left: ${this.currentTime * this.pixelsPerSecond}px"></div>
+            ${this._buffer ? html`<div id="playback-line" style="left: ${this.currentTime * this.pixelsPerSecond}px"></div>
             <div class="marker playhead" id="playback" @pointerdown=${this.handleMarkerDown.bind(this)} style="left: ${this.currentTime * this.pixelsPerSecond - 3}px"></div>
             <div class="marker" id="start-range" @pointerdown=${this.handleMarkerDown.bind(this)} style="left: ${drawRange ? range[0]! * this.pixelsPerSecond - 3 : -100}px"></div>
             <div class="marker" id="end-range" @pointerdown=${this.handleMarkerDown.bind(this)} style="left: ${drawRange ? range[1]! * this.pixelsPerSecond - 3 : -100}px"></div>` : undefined}`;

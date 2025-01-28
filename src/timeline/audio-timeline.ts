@@ -27,6 +27,15 @@ export class AudioTimeline extends LitElement {
     @property({ type: Number })
     pixelsPerSecond = 20;
 
+    @property({ type: Number })
+    beatsPerSecond = 1;
+
+    @property({ type: Number })
+    beatsPerMeasure = 4;
+
+    @property({ type: Number })
+    beatOffsetSeconds = 0;
+
     bounds?: DOMRect;
 
     _buffer?: AudioBuffer;
@@ -34,7 +43,7 @@ export class AudioTimeline extends LitElement {
     set buffer(data: AudioBuffer | undefined) {
         this._buffer = data;
         if (this.timelineView) {
-            this.timelineView.buffer = this._buffer;
+            this.timelineView.data = this._buffer;
         }
         this.dispatchEvent(new Event('loaded', { bubbles: true, composed: true }));
         this.requestUpdate();
@@ -57,7 +66,7 @@ export class AudioTimeline extends LitElement {
     protected firstUpdated(_changedProperties: PropertyValues) {
         super.firstUpdated(_changedProperties);
         if (this.timelineView) {
-            this.timelineView.buffer = this._buffer;
+            this.timelineView.data = this._buffer;
         }
         this.requestUpdate();
     }
@@ -71,8 +80,9 @@ export class AudioTimeline extends LitElement {
                 waveformColor=${this.waveformColor}
                 currenttime=${this.currentTime}
                 pixelspersecond=${this.pixelsPerSecond}
-                beatspersecond=1
-                beatspermeasure=4>
+                beatspersecond=${this.beatsPerSecond}
+                beatoffsetseconds=${this.beatOffsetSeconds}
+                beatspermeasure=${this.beatsPerMeasure}>
             </mt-audio-view>`;
     }
 
