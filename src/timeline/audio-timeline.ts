@@ -42,10 +42,6 @@ export class AudioTimeline extends LitElement {
 
     set buffer(data: AudioBuffer | undefined) {
         this._buffer = data;
-        if (this.timelineView) {
-            this.timelineView.data = this._buffer;
-        }
-        this.dispatchEvent(new Event('loaded', { bubbles: true, composed: true }));
         this.requestUpdate();
     }
 
@@ -66,7 +62,7 @@ export class AudioTimeline extends LitElement {
     protected firstUpdated(_changedProperties: PropertyValues) {
         super.firstUpdated(_changedProperties);
         if (this.timelineView) {
-            this.timelineView.data = this._buffer;
+            this.timelineView.buffer = this._buffer;
         }
         this.requestUpdate();
     }
@@ -75,8 +71,10 @@ export class AudioTimeline extends LitElement {
      * TODO: We're assuming x/4 timing when passing beats per second - make this more robust in the future
      */
     render() {
+        if (!this.buffer) return undefined;
         return html`
             <mt-audio-view style="height: ${this.bounds?.height}px"
+               .buffer=${this.buffer}
                 waveformColor=${this.waveformColor}
                 currenttime=${this.currentTime}
                 pixelspersecond=${this.pixelsPerSecond}
@@ -88,12 +86,7 @@ export class AudioTimeline extends LitElement {
 
 
     protected async load(uri: string) {
-        this._buffer = (await AudioFile.Load(uri))?.buffer;
-        if (this.timelineView) {
-            this.timelineView.buffer = this._buffer;
-        }
-        this.dispatchEvent(new Event('loaded', { bubbles: true, composed: true }));
-        this.requestUpdate();
+        this.buffer = (await AudioFile.Load(uri))?.buffer;
     }
 
     attributeChangedCallback(name: string, _old: string | null, value: string | null) {

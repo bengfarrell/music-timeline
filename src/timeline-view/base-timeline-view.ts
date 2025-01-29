@@ -34,10 +34,6 @@ export class BaseTimelineView extends LitElement {
     pendingSeek?: number;
     selectionRange: [number | undefined, number | undefined] = [ undefined, undefined ];
 
-    set data(_data: NoteEvent[] | AudioBuffer | undefined) {
-        this.requestUpdate();
-    }
-
     get duration() { return 0; }
 
     get secondsPerBeat() {

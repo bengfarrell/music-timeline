@@ -1,3 +1,6 @@
+### v0.3.1 (2025-1-28)
+- Property set through reactivity and clean up some confusing bits that don't render audio in demo or app at the same time
+
 ### v0.3.0 (2025-1-27)
 - Broke out range selection event to be its own thing
 - Add refresh methods to allow note array modification without having to set the whole track again

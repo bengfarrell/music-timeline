@@ -20,7 +20,6 @@ export class AudioTimelineView extends BaseTimelineView {
     waveformColor = 'white';
 
     set buffer(data: AudioBuffer | undefined) {
-        super.data = data;
         this._buffer = data;
         this.waveformRendered = false;
         if (!this.waveformRendered) this.renderWaveform();
