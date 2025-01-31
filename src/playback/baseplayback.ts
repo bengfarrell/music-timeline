@@ -26,8 +26,6 @@ export class BasePlayback extends EventEmitter implements ReactiveController {
     protected _loopStart?: number;
     protected _loopEnd?: number;
 
-    protected _data: NoteEvent[] = [];
-
     attachHost(host: ReactiveElement) {
         host.addController(this);
         this.hosts.push(host);
@@ -60,6 +58,8 @@ export class BasePlayback extends EventEmitter implements ReactiveController {
     async stop() {
         this._isPaused = false;
         this._isPlaying = false;
+        this.playbackRate = 1;
+        this.clearLoopRange();
         this.dispatchEvent(new PlayStateChangeEvent());
     }
 

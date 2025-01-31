@@ -93,6 +93,11 @@ export class AudioPlayback extends BasePlayback {
     async stop() {
         await this.context?.close();
         this.context = undefined;
+        this.buffer = undefined;
+        this.offsetStart = 0;
+        this.pendingSeek = 0;
+        this.audioSource?.stop();
+        this.audioSource = undefined;
         await super.stop();
         this.dispatchEvent(new PlayStateChangeEvent());
     }

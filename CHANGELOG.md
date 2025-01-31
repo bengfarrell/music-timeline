@@ -1,3 +1,9 @@
+### v0.3.2 (2025-1-30)
+- firm up note replacement and refreshing
+- rename MIDITimedPlayback to MIDIPlayback
+- make stop playback function work properly
+- pass buffer/MIDI to timeline via .property on rendered HTML to be better in sync with render cycle
+
 ### v0.3.1 (2025-1-28)
 - Property set through reactivity and clean up some confusing bits that don't render audio in demo or app at the same time
 

@@ -9,7 +9,7 @@ import { Sampler } from 'tone';
  * explicitly tied to the midi-sequence-timeline implementation
  * Users of the midi-sequence-timeline library can use this controller or use a different one for playback
  */
-export class MIDITimedPlayback extends BasePlayback {
+export class MIDIPlayback extends BasePlayback {
     static LOOKAHEAD = 0.2;
     protected _lastTick = 0;
     protected _currentTime = 0;
@@ -19,20 +19,11 @@ export class MIDITimedPlayback extends BasePlayback {
 
     protected _synth?: Tone.PolySynth | Sampler;
 
+    protected _data: NoteEvent[] = [];
+
     set data(events: NoteEvent[]) {
         this._data = events;
         this._noteBuffer = [];
-    }
-
-    set transpose(val: number) {
-        this._transpose = val;
-        this.hosts.forEach(host => {
-            host.requestUpdate();
-        });
-    }
-
-    get transpose() {
-        return this._transpose;
     }
 
     set synth(synth: Tone.PolySynth | string) {
@@ -131,7 +122,7 @@ export class MIDITimedPlayback extends BasePlayback {
         this._lastTick = Tone.now();
         const next = this._noteBuffer[0];
         this._currentTime += delta * this.playbackRate;
-        if (next && this._currentTime >= next.time - MIDITimedPlayback.LOOKAHEAD) {
+        if (next && this._currentTime >= next.time - MIDIPlayback.LOOKAHEAD) {
             const event = this._noteBuffer.shift();
             if (event) {
                 const now = Tone.now();
@@ -143,7 +134,6 @@ export class MIDITimedPlayback extends BasePlayback {
         }
         if (this._currentTime >= (this._loopStart || 0) + this.duration) {
             if (this.isLooping) {
-                console.log('loop')
                 this.seek(this._loopStart || 0);
             } else {
                 this._isPlaying = false;
@@ -160,4 +150,4 @@ export class MIDITimedPlayback extends BasePlayback {
     }
 }
 
-export const Playback = new MIDITimedPlayback();
+export const Playback = new MIDIPlayback();

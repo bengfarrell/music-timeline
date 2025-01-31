@@ -148,10 +148,6 @@ export class MIDITrack {
         this.processTrack();
     }
 
-    refresh() {
-        this.processTrack();
-    }
-
     processTrack() {
         this.noteRange[0] = this.events.reduce((acc, event) => { return Math.min ((event as NoteEvent).note || acc, acc); }, Infinity);
         this.noteRange[1] = this.events.reduce((acc, event) => { return Math.max ((event as NoteEvent).note || acc, acc); }, 0) + 1;

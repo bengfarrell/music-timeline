@@ -1,4 +1,4 @@
-import { html, LitElement, PropertyValues } from 'lit';
+import { html, LitElement } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
 import { style } from './timeline.css.js';
 import '../timeline-view/midi-timeline-view.js';
@@ -41,16 +41,10 @@ export class MIDITimeline extends LitElement {
         }
         this._midiTrack = track;
         this.dispatchEvent(new Event('loaded', { bubbles: true, composed: true }));
-        if (this.timelineView) {
-            this.timelineView.data = this._midiTrack?.sequence || [];
-        }
         this.requestUpdate();
     }
 
     refresh() {
-        if (this.timelineView) {
-            this.timelineView.data = this._midiTrack?.sequence || [];
-        }
         this.requestUpdate();
     }
 
@@ -72,14 +66,6 @@ export class MIDITimeline extends LitElement {
         this.bounds = this.getBoundingClientRect();
     }
 
-    protected firstUpdated(_changedProperties: PropertyValues) {
-        super.firstUpdated(_changedProperties);
-        if (this.timelineView) {
-            this.timelineView.data = this._midiTrack?.sequence || [];
-        }
-        this.requestUpdate();
-    }
-
     /**
      * TODO: We're assuming x/4 timing when passing beats per second - make this more robust in the future
      */
@@ -95,6 +81,7 @@ export class MIDITimeline extends LitElement {
             notemax=${noteMax}>
         </mt-note-tray>
         <mt-midi-view style="height: ${this.bounds?.height}px"
+            .data=${this._midiTrack?.sequence || []}
             noteheight=${noteHeight}
             notemin=${noteMin}
             notemax=${noteMax}
@@ -113,10 +100,6 @@ export class MIDITimeline extends LitElement {
             this.midiTrack = this.midi.tracks[this.trackNum];
         } else {
             this.midiTrack = MIDITrack.isolateChannelsFromTrack(this.midi.tracks[this.trackNum], this.channelNum);
-        }
-
-        if (this.timelineView) {
-            this.timelineView.data = this.midiTrack?.sequence;
         }
         this.requestUpdate();
     }

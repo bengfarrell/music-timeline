@@ -14,7 +14,7 @@
     <title>MIDI Sequence Timeline</title>
     <script src="../timeline/index.js" type="module"></script>
     <script type="module">
-        import { Playback } from '../playback/miditimedplayback.js';
+        import { Playback } from '../playback/midiplayback.js';
         import { generateExample } from '../utils/index.js';
         import { TimelineEvent, RangeSelectEvent } from '../timeline-view/index.js';
 
@@ -72,6 +72,24 @@
             }, 100);
         });
 
+        document.getElementById('up-octave').addEventListener('click', (e) => {
+            timeline.track.events.forEach((event) => {
+                event.note += 12;
+            });
+            timeline.track.processTrack();
+            timeline.refresh();
+            Playback.data = timeline.track.sequence;
+        });
+
+        document.getElementById('down-octave').addEventListener('click', (e) => {
+            timeline.track.events.forEach((event) => {
+                event.note -= 12;
+            });
+            timeline.track.processTrack();
+            timeline.refresh();
+            Playback.data = timeline.track.sequence;
+        });
+
         document.getElementById('rate').addEventListener('change', (e) => {
             Playback.rate = e.target.value;
         });
@@ -107,6 +125,12 @@
     <label>Channels</label>
     <select id="channels"></select>
 </p>
+
+<p>
+    <label>Octave</label>
+    <button id="up-octave">Up</button>
+    <button id="down-octave">Down</button>
+</p>
 <button id="play">Play</button>
 <button id="pause">Pause</button>
 <label>Rate</label>
@@ -114,6 +138,8 @@
 <br/><br/>
 
 <!--<mt-midi id="timeline"></mt-midi>-->
+
+
 <mt-midi src="samples/cheers.mid" channelnum="0" tracknum="0"></mt-midi>
 </body>
 </html>

@@ -42,6 +42,7 @@ export class AudioTimeline extends LitElement {
 
     set buffer(data: AudioBuffer | undefined) {
         this._buffer = data;
+        this.dispatchEvent(new Event('loaded', { bubbles: true, composed: true }));
         this.requestUpdate();
     }
 
