@@ -1,9 +1,11 @@
-export const renderWaveform = (ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, width: number, height: number, samples: Float32Array[], ampScale: number = 1, smoothing: number = 0) => {
+export const renderWaveform = (ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, width: number, height: number, samples: Float32Array[], smoothing: number = 0) => {
     const step = Math.ceil(samples[0].length / width);
 
     // below approach adapted from https://github.com/meandavejustice/draw-wave/blob/master/index.js
     const firstChannel = samples[0];
     let lastDrawnAmplitude;
+    const samplesToRender = [];
+    let maxAmplitude = -Infinity;
     for (let i = 0; i < width; i++) {
         let min = 1.0;
         let max = -1.0;
@@ -16,14 +18,18 @@ export const renderWaveform = (ctx: CanvasRenderingContext2D | OffscreenCanvasRe
         }
 
         if (!lastDrawnAmplitude) {
-            lastDrawnAmplitude = Math.min(1, max - min * ampScale);
+            lastDrawnAmplitude = Math.min(1, max - min);
         }
 
-        //console.log('min', min, 'max', max, 'lastDrawnAmplitude', lastDrawnAmplitude);
-        const amp = Math.max(Math.min(Math.min(1, max - min * ampScale), lastDrawnAmplitude * (1 + (1 - smoothing))), lastDrawnAmplitude * (1 - (1 - smoothing)));
+        const amp = Math.max(Math.min(Math.min(1, max - min), lastDrawnAmplitude * (1 + (1 - smoothing))), lastDrawnAmplitude * (1 - (1 - smoothing)));
         if (amp > 0) {
             lastDrawnAmplitude = amp;
-            ctx?.fillRect(i, height - amp * height, 1, amp * height);
+            samplesToRender.push(amp);
+            maxAmplitude = Math.max(maxAmplitude, amp);
         }
     }
+    samplesToRender.forEach((sample, i) => {
+        ctx?.fillRect(i, height - sample * height * (1 / maxAmplitude), 1, sample * height * (1 / maxAmplitude));
+    });
+    return { maxAmplitude };
 }

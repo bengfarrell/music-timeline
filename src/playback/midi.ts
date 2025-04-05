@@ -3,13 +3,16 @@ import * as Tone from 'tone';
 import { BasePlayback, PlayStateChangeEvent } from './baseplayback';
 import { Sampler } from 'tone';
 
+// convenience export to grab Tone.js reference to make synths
+export const ToneJS = Tone;
+
 /**
  * Playback controller for MIDI playback
  * This controller is offered as a possible MIDI player, but is not
  * explicitly tied to the midi-sequence-timeline implementation
  * Users of the midi-sequence-timeline library can use this controller or use a different one for playback
  */
-export class MIDIPlayback extends BasePlayback {
+export class MidiPlayback extends BasePlayback {
     static LOOKAHEAD = 0.2;
     protected _lastTick = 0;
     protected _currentTime = 0;
@@ -17,7 +20,7 @@ export class MIDIPlayback extends BasePlayback {
 
     protected _noteBuffer: NoteEvent[] = [];
 
-    protected _synth?: Tone.PolySynth | Sampler;
+    protected _synth?: Tone.PolySynth | Tone.Synth | Sampler;
 
     protected _data: NoteEvent[] = [];
 
@@ -26,53 +29,8 @@ export class MIDIPlayback extends BasePlayback {
         this._noteBuffer = [];
     }
 
-    set synth(synth: Tone.PolySynth | string) {
-        if (typeof synth === 'string') {
-            switch (synth) {
-                case 'poly-synth':
-                    this._synth = new Tone.PolySynth(Tone.Synth).toDestination();
-                    break;
-                case 'sampled-piano':
-                    this._synth = new Tone.Sampler({
-                        urls: {
-                            C4: "C4.mp3",
-                            "D#4": "Ds4.mp3",
-                            "F#4": "Fs4.mp3",
-                            A4: "A4.mp3",
-                        },
-                        release: 1,
-                        baseUrl: "https://tonejs.github.io/audio/salamander/",
-                    }).toDestination();
-                    break;
-                case 'piano':
-                    this._synth = new Tone.PolySynth(Tone.FMSynth, {
-                        harmonicity: 3,
-                        modulationIndex: 10,
-                        detune: 0,
-                        oscillator: {
-                            type: 'sine'
-                        },
-                        envelope: {
-                            attack: 0.01,
-                            decay: 0.2,
-                            sustain: 0.2,
-                            release: 0.2
-                        },
-                        modulation: {
-                            type: 'sine'
-                        },
-                        modulationEnvelope: {
-                            attack: 0.01,
-                            decay: 0.2,
-                            sustain: 0.2,
-                            release: 0.2
-                        }
-                    }).toDestination();
-                    break;
-            }
-        } else {
-            this._synth = synth;
-        }
+    set synth(synth: Tone.PolySynth | Tone.Sampler) {
+        this._synth = synth;
     }
 
     refresh() {
@@ -90,16 +48,20 @@ export class MIDIPlayback extends BasePlayback {
     }
 
     play() {
-        if (!this.synth) this.synth = new Tone.PolySynth(Tone.Synth).toDestination();
+        if (!this._synth) {
+            this.synth = new Tone.PolySynth(Tone.Synth).toDestination();
+        }
         if (this._noteBuffer.length === 0) this._noteBuffer = this._data.filter(e => e.time >= this._currentTime && e.time <= (this._loopStart || 0) + this.duration);
 
         if (!this.isPlaying && !this.isPaused) {
             this._lastTick = Tone.now();
+            Tone.getTransport().start();
             requestAnimationFrame(() => this.tick());
             this._isPlaying = true;
             this._isPaused = false;
         } else if (this.isPaused) {
             this._lastTick = Tone.now();
+            Tone.getTransport().start();
             requestAnimationFrame(() => this.tick());
             this._isPaused = false;
             this._isPlaying = true;
@@ -120,9 +82,11 @@ export class MIDIPlayback extends BasePlayback {
     tick() {
         const delta = Tone.now() - this._lastTick;
         this._lastTick = Tone.now();
+        console.log(delta, this._lastTick, Tone.now())
         const next = this._noteBuffer[0];
         this._currentTime += delta * this.playbackRate;
-        if (next && this._currentTime >= next.time - MIDIPlayback.LOOKAHEAD) {
+        if (next && this._currentTime >= next.time - MidiPlayback.LOOKAHEAD) {
+            console.log('yes');
             const event = this._noteBuffer.shift();
             if (event) {
                 const now = Tone.now();
@@ -150,4 +114,4 @@ export class MIDIPlayback extends BasePlayback {
     }
 }
 
-export const Playback = new MIDIPlayback();
+export const Playback = new MidiPlayback();

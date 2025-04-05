@@ -13,7 +13,7 @@ PlayStateChangeEvent.type = 'playstatechange';
  * explicitly tied to the midi-sequence-timeline implementation
  * Users of the midi-sequence-timeline library can use this controller or use a different one for playback
  */
-export class Midiplayback extends EventBus {
+export class Midi extends EventBus {
     constructor(host) {
         super();
         host.addController(this);

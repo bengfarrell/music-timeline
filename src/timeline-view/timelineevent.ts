@@ -7,7 +7,7 @@ export class RangeSelectEvent extends Event {
         super(RangeSelectEvent.type, eventInitDict);
     }
 
-    get rangeAsSeconds() {
+    get rangeAsMeasures() {
         if (this.range && this.beatsPerSecond) {
             return [this.range[0] / this.beatsPerSecond, this.range[1] / this.beatsPerSecond];
         }

@@ -28,7 +28,7 @@ export class AudioTimeline extends LitElement {
     pixelsPerSecond = 20;
 
     @property({ type: Number })
-    beatsPerSecond = 1;
+    beatsPerMinute = 120;
 
     @property({ type: Number })
     beatsPerMeasure = 4;
@@ -55,6 +55,16 @@ export class AudioTimeline extends LitElement {
         return Math.max((this.bounds?.width || 0) - 50, 0);
     }
 
+    highlightBeat(beat: number) {
+        this.timelineView?.highlightBeat(beat);
+    }
+
+    clearSelectionRange() {
+        if (this.timelineView) {
+            this.timelineView.selectionRange = [ undefined, undefined ];
+        }
+    }
+
     connectedCallback() {
         super.connectedCallback();
         this.bounds = this.getBoundingClientRect();
@@ -79,7 +89,7 @@ export class AudioTimeline extends LitElement {
                 waveformColor=${this.waveformColor}
                 currenttime=${this.currentTime}
                 pixelspersecond=${this.pixelsPerSecond}
-                beatspersecond=${this.beatsPerSecond}
+                beatsperminute=${this.beatsPerMinute}
                 beatoffsetseconds=${this.beatOffsetSeconds}
                 beatspermeasure=${this.beatsPerMeasure}>
             </mt-audio-view>`;

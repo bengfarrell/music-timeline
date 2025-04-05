@@ -1,4 +1,5 @@
 import { BasePlayback, PlayStateChangeEvent } from './baseplayback';
+import { guess } from 'web-audio-beat-detector';
 
 /**
  * Playback controller for Audio playback
@@ -26,6 +27,22 @@ export class AudioPlayback extends BasePlayback {
     set rate(val: number) {
         super.rate = val;
         if (this.audioSource) this.audioSource.playbackRate.value = val;
+    }
+
+    calculateBPM() {
+        return new Promise<{ bpm: number, offset: number} | undefined>((resolve, reject) =>
+        {
+            if (this.buffer) {
+                guess(this.buffer)
+                    .then(({ bpm, offset }) => {
+                        resolve({ bpm, offset });
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                        reject(undefined);
+                    });
+            }
+        });
     }
 
     async play() {

@@ -7,7 +7,7 @@ export const style = css`
         position: relative;
         display: inline-block;
     }
-    
+
     #rendered {
         display: inline-block;
         background-repeat: no-repeat;
@@ -38,10 +38,10 @@ export const style = css`
         width: 100%;
     }
 
-    .noterow:hover {    
+    .noterow:hover {
         background-color: #444;
     }
-    
+
     .noteblock {
         position: absolute;
         border-radius: 3px;
@@ -50,27 +50,27 @@ export const style = css`
         border: 1px solid #6b9c7f;
     }
 
-    .hardTick {
+    .tick {
         position: absolute;
         top: 2px;
         bottom: 0;
+        width: 1px;
+    }
+
+    .highlight.tick {
+        background-color: #e8e52a;
+    }
+
+    .hard.tick {
         background-color: #8a8a8a;
     }
 
-    .hardTick:hover {
+    .hard.tick:hover {
         background-color: #c5c5c5;
     }
 
-    .softTick {
-        position: absolute;
-        top: 2px;
-        bottom: 0;
+    .soft.tick {
         background-color: #5e5e5e;
-    }
-
-    .hardTick, .softTick {
-        position: absolute;
-        width: 1px;
     }
 
     .marker.playhead:before, .marker.playhead:after {

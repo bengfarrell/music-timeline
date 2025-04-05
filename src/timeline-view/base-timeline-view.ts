@@ -13,7 +13,7 @@ export class BaseTimelineView extends LitElement {
     pixelsPerSecond: number = 0;
 
     @property({ type: Number })
-    beatsPerSecond: number = 0;
+    beatsPerMinute: number = 120;
 
     @property({ type: Number })
     beatsPerMeasure: number = 0;
@@ -34,11 +34,11 @@ export class BaseTimelineView extends LitElement {
     pendingSeek?: number;
     selectionRange: [number | undefined, number | undefined] = [ undefined, undefined ];
 
-    get duration() { return 0; }
-
-    get secondsPerBeat() {
-        return 1 / this.beatsPerSecond;
+    highlightBeat(beat: number) {
+        this.shadowRoot!.getElementById('highlight-tick')!.style.left = this.shadowRoot!.getElementById('beat-' + beat)!.style.left;
     }
+
+    get duration() { return 0; }
 
     refresh() { this.requestUpdate(); }
 
@@ -49,7 +49,7 @@ export class BaseTimelineView extends LitElement {
         document.body.addEventListener('pointerup', () => {
             const range = this.selectionRange.sort((a, b) => a! - b!);
             if (this.isSelecting && range && range[0] !== range[1] && !this.pendingSeek) {
-                this.dispatchEvent(new RangeSelectEvent(range as [number, number], this.beatsPerSecond, { bubbles: true, composed: true }));
+                this.dispatchEvent(new RangeSelectEvent(range as [number, number], this.beatsPerMinute / 60, { bubbles: true, composed: true }));
             } else if (this.pendingSeek){
                 this.currentTime = this.pendingSeek;
                 this.dispatchEvent(new TimelineEvent(TimelineEvent.SEEK, { time: this.pendingSeek }, { bubbles: true, composed: true }));
@@ -69,7 +69,7 @@ export class BaseTimelineView extends LitElement {
         this.pendingSeek = beat;
 
         if (this.selectionRange[0] !== undefined && this.selectionRange[1] !== undefined) {
-            this.dispatchEvent(new RangeSelectEvent(undefined, this.beatsPerSecond, { bubbles: true, composed: true }));
+            this.dispatchEvent(new RangeSelectEvent(undefined, this.beatsPerMinute / 60, { bubbles: true, composed: true }));
         }
         this.selectionRange = [beat, undefined];
         this.requestUpdate();
@@ -121,18 +121,20 @@ export class BaseTimelineView extends LitElement {
 
     protected renderGrid() {
         const ticks = [];
-        const numBeats = Math.ceil(this.duration / this.secondsPerBeat);
+        const secondsPerBeat = 1 / (this.beatsPerMinute / 60);
+        const numBeats = Math.ceil(this.duration / secondsPerBeat);
         for (let c = 0; c < numBeats + 1; c++) {
-            const time = c * this.secondsPerBeat + this.beatOffsetSeconds % this.secondsPerBeat;
+            const time = c * secondsPerBeat + this.beatOffsetSeconds % secondsPerBeat;
             const isHardTick = c % this.beatsPerMeasure === 0;
             if (isHardTick) {
                 ticks.push(html`
-                    <div class="hardTick" style="left: ${time * this.pixelsPerSecond}px"></div>`);
+                    <div class="hard tick" id="beat-${c}" style="left: ${time * this.pixelsPerSecond}px"></div>`);
             } else {
                 ticks.push(html`
-                    <div class="softTick" style="left: ${time * this.pixelsPerSecond}px"></div>`);
+                    <div class="soft tick" id="beat-${c}" style="left: ${time * this.pixelsPerSecond}px"></div>`);
             }
         }
+        ticks.push(html`<div class="highlight tick" id="highlight-tick"></div>`)
         return ticks;
     }
 }

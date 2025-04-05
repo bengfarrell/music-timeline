@@ -10,9 +10,7 @@ export class AudioTimelineView extends BaseTimelineView {
 
     protected _buffer?: AudioBuffer;
 
-    protected ampScale = 1;
-
-    protected smoothing = 0.8;
+    protected smoothing = 0.9;
 
     protected waveformRendered = false;
 
@@ -47,7 +45,7 @@ export class AudioTimelineView extends BaseTimelineView {
             this.rendered.height = height;
             const ctx = this.rendered.getContext('2d') as CanvasRenderingContext2D;
             ctx.fillStyle = this.waveformColor;
-            renderWaveform(ctx, ttlPxWidth, height, source, this.ampScale, this.smoothing);
+            renderWaveform(ctx, ttlPxWidth, height, source, this.smoothing);
             this.waveformRendered = true;
         }
     }

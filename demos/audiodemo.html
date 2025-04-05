@@ -7,10 +7,20 @@
     <script src="../timeline/index.js" type="module"></script>
     <script type="module">
         import { RangeSelectEvent, TimelineEvent } from '../timeline-view/index.js';
-        import { Playback } from '../playback/audioplayback.js';
+        import { Playback } from '../playback/audio.js';
+        import { MetronomeEvent, Playback as MetronomePlayback } from '../playback/metronome.js';
 
         let timer = null;
         Playback.isLooping = true;
+        MetronomePlayback.addEventListener(MetronomeEvent.eventName, (e) => {
+            if (Playback.isPlaying) {
+                const playbackTime = Playback.currentTime;
+                const beatsPerSecond = timeline.beatsPerMinute / 60;
+                timeline.highlightBeat(Math.floor(beatsPerSecond * playbackTime + MetronomePlayback.beatOffset));
+            } else {
+                timeline.highlightBeat(e.beat);
+            }
+        })
 
         const timeline = document.querySelector('mt-audio');
         timeline.addEventListener(TimelineEvent.SEEK, (e) => {
@@ -39,16 +49,35 @@
             }, 100);
         });
 
+        document.getElementById('metronome_start').addEventListener('click', async () => {
+            MetronomePlayback.play();
+        });
+
+        document.getElementById('metronome_stop').addEventListener('click', async () => {
+            MetronomePlayback.stop();
+        });
+
+        document.getElementById('calc_bpm').addEventListener('click', async () => {
+            const result = await Playback.calculateBPM();
+            document.getElementById('bpm').value = result.bpm;
+            timeline.beatsPerMinute = result.bpm;
+
+            document.getElementById('beat-offset').value = result.offset;
+            timeline.beatOffsetSeconds = result.offset;
+        });
+
         document.getElementById('rate').addEventListener('change', (e) => {
             Playback.rate = e.target.value;
         });
 
-        document.getElementById('bps').addEventListener('change', (e) => {
-            timeline.beatsPerSecond = Number(e.target.value);
+        document.getElementById('bpm').addEventListener('change', (e) => {
+            timeline.beatsPerMinute = Number(e.target.value);
+            MetronomePlayback.BPM = Number(e.target.value);
         });
 
-        document.getElementById('bpm').addEventListener('change', (e) => {
+        document.getElementById('bpmeasure').addEventListener('change', (e) => {
             timeline.beatsPerMeasure = Number(e.target.value);
+            MetronomePlayback.beatsPerMeasure = Number(e.target.value);
         });
 
         document.getElementById('beat-offset').addEventListener('change', (e) => {
@@ -68,13 +97,18 @@
 <button id="play">Play</button>
 <button id="pause">Pause</button>
 
+<button id="metronome_start">Start Metronome</button>
+<button id="metronome_stop">Stop Metronome</button>
+
+<button id="calc_bpm">Calculate BPM</button>
+
 <br/><br/>
-<label>Beats per second</label>
-<input id="bps" type="number" min="0.1" value="1" max="10" step="0.1" />
+<label>Beats per minute</label>
+<input id="bpm" type="number" min="1" value="120" max="240" step="1" />
 <br/><br/>
 
 <label>Beats per measure</label>
-<input id="bpm" type="number" min="1" value="4" max="16" step="1" />
+<input id="bpmeasure" type="number" min="1" value="4" max="16" step="1" />
 <br/><br/>
 
 <label>Beat offset (seconds)</label>
@@ -86,6 +120,6 @@
 <input id="rate" type="number" min="0.1" value="1" max="5" step="0.1" />
 <br/><br/>
 
-<mt-audio waveformcolor="white" src="samples/startrek.mp3"></mt-audio>
+<mt-audio waveformcolor="white" src="samples/test2-bass.mp3"></mt-audio>
 </body>
 </html>

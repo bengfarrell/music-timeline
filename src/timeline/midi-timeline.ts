@@ -31,6 +31,12 @@ export class MIDITimeline extends LitElement {
     @property({ type: Number })
     pixelsPerSecond = 20;
 
+    @property({ type: Number })
+    beatsPerMeasure = 4;
+
+    @property({ type: Number })
+    beatsPerMinute = 120;
+
     bounds?: DOMRect;
     midi?: MIDIFile;
     protected _midiTrack?: MIDITrack;
@@ -54,6 +60,12 @@ export class MIDITimeline extends LitElement {
 
     get track() {
         return this.midiTrack;
+    }
+
+    clearSelectionRange() {
+        if (this.timelineView) {
+            this.timelineView.selectionRange = [ undefined, undefined ];
+        }
     }
 
     get contentWidth() {
@@ -87,8 +99,8 @@ export class MIDITimeline extends LitElement {
             notemax=${noteMax}
             currenttime=${this.currentTime}
             pixelspersecond=${this.pixelsPerSecond}
-            beatspersecond=${1 / ((this.midiTrack?.timeMeta.tempo || 1000000) / 1000000)}
-            beatspermeasure=${this.midiTrack?.timeSignature?.numerator}>
+            beatsperminute=${this.beatsPerMinute}
+            beatspermeasure=${this.beatsPerMeasure}>
         </mt-midi-view>`;
     }
 

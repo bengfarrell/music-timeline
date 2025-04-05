@@ -1,1 +1,0 @@
-{"version":3,"file":"noteevent.js","sourceRoot":"","sources":["noteevent.ts"],"names":[],"mappings":"","sourcesContent":["\nexport interface NoteEvent {\n    delta?: number,\n    note: number;\n    channel?: number;\n    velocity: number;\n    duration: number;\n    time: number;\n}\n"]}
