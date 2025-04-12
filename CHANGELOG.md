@@ -1,3 +1,13 @@
+### v0.4.0 (2025-4-5)
+- add beat detection functionality to audio playback
+- change beats per second accessors to beats per minute to be more standard
+- drop amp scale from waveform drawing
+- allow beat highlighting
+- add metronome
+- change class names (dropping playback since it comes from playback folder)
+- range is actually comes back as measures in timeline event, so change accessor to reflect
+- add metronome and grid highlighting and BPM/offset calc in audio demo
+
 ### v0.3.2 (2025-1-30)
 - firm up note replacement and refreshing
 - rename MIDITimedPlayback to MIDIPlayback
