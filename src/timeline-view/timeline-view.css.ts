@@ -12,7 +12,7 @@ export const style = css`
         display: inline-block;
         background-repeat: no-repeat;
         width: 100%;
-        height: 100%;
+        height: calc(100% - 16px);
     }
 
     #selection-box {
@@ -54,23 +54,27 @@ export const style = css`
         position: absolute;
         top: 2px;
         bottom: 0;
-        width: 1px;
+        width: 4px;
+        background-color: transparent;
+        border-left: 1px solid;
     }
 
     .highlight.tick {
-        background-color: #e8e52a;
+        border-left-color: #e8e52a;
+        display: none;
     }
 
     .hard.tick {
-        background-color: #8a8a8a;
+        border-left-color: #8a8a8a;
     }
 
-    .hard.tick:hover {
-        background-color: #c5c5c5;
+    .hard.tick:hover,
+    .soft.tick:hover {
+        border-left-color: #c5c5c5;
     }
 
     .soft.tick {
-        background-color: #5e5e5e;
+        border-left-color: #5e5e5e;
     }
 
     .marker.playhead:before, .marker.playhead:after {
@@ -110,5 +114,18 @@ export const style = css`
     .marker:after {
         border-radius: 20% 20% 53% 20%;
         transform: scaleX(1.155) skewY(-30deg) rotate(-30deg) translateY(-42.3%) skewX(-30deg) scaleY(.866) translateX(24%);
+    }
+    
+    #beat-time {
+        position: absolute;
+        border: 1px solid #c5c5c5;
+        background-color: #2a2a2a;
+        color: #cacaca;
+        font-size: 10px;
+        font-family: sans-serif;
+        padding: 4px;
+        top: 20px;
+        border-bottom-right-radius: 8px;
+        border-top-right-radius: 8px;
     }
 `;

@@ -1,6 +1,6 @@
 {
   "name": "music-timeline",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "",
   "type": "module",
   "main": "index.js",
@@ -33,8 +33,7 @@
   "dependencies": {
     "lit": "^3.2.0",
     "midi-json-parser": "^8.1.45",
-    "tone": "^15.1.3",
-    "web-audio-beat-detector": "^8.2.27"
+    "tone": "^15.1.3"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.25.0",

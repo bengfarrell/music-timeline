@@ -33,7 +33,7 @@
 
         timeline.addEventListener(RangeSelectEvent.type, (e) => {
             if (e.range) {
-                Playback.loop(...e.rangeAsSeconds);
+                Playback.loop(...e.rangeAsMeasures);
             } else {
                 Playback.clearLoopRange();
             }
@@ -44,9 +44,14 @@
             if (timer) {
                 clearInterval(timer);
             }
+            timeline.isPlaying = true;
             setInterval(() => {
                 timeline.currentTime = Playback.currentTime;
             }, 100);
+        });
+
+        document.getElementById('zoom-slider').addEventListener('input', async (event) => {
+            timeline.zoomPercent = Number(event.target.value);
         });
 
         document.getElementById('metronome_start').addEventListener('click', async () => {
@@ -55,15 +60,6 @@
 
         document.getElementById('metronome_stop').addEventListener('click', async () => {
             MetronomePlayback.stop();
-        });
-
-        document.getElementById('calc_bpm').addEventListener('click', async () => {
-            const result = await Playback.calculateBPM();
-            document.getElementById('bpm').value = result.bpm;
-            timeline.beatsPerMinute = result.bpm;
-
-            document.getElementById('beat-offset').value = result.offset;
-            timeline.beatOffsetSeconds = result.offset;
         });
 
         document.getElementById('rate').addEventListener('change', (e) => {
@@ -85,6 +81,7 @@
         });
 
         document.getElementById('pause').addEventListener('click', () => {
+            timeline.isPlaying = false;
             Playback.pause();
         });
 
@@ -100,7 +97,9 @@
 <button id="metronome_start">Start Metronome</button>
 <button id="metronome_stop">Stop Metronome</button>
 
-<button id="calc_bpm">Calculate BPM</button>
+<label>Zoom</label>
+<input id="zoom-slider" type="range" min="1" max="1000" value="100" />
+<br/><br/>
 
 <br/><br/>
 <label>Beats per minute</label>
@@ -120,6 +119,6 @@
 <input id="rate" type="number" min="0.1" value="1" max="5" step="0.1" />
 <br/><br/>
 
-<mt-audio waveformcolor="white" src="samples/test2-bass.mp3"></mt-audio>
+<mt-audio followplayback waveformcolor="white" src="samples/test2-bass.mp3"></mt-audio>
 </body>
 </html>

@@ -1,3 +1,12 @@
+### v0.4.1 (2025-4-13)
+- remove beat detection, its better to keep this lib simple and have that as an app concern
+- make pixelsPerSecond obsolete in main timeline component in favor of zoom percentage
+- zoom percent is by default 100 to fit view size at loaded perfectly
+- fix inaccurate range selection drag
+- add hover state for all ticks
+- pad bottom so scroll bar doesn't blend with waveform
+- add hover over timecode view on beat ticks
+
 ### v0.4.0 (2025-4-5)
 - add beat detection functionality to audio playback
 - change beats per second accessors to beats per minute to be more standard

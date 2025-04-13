@@ -29,13 +29,19 @@ export class MIDITimeline extends LitElement {
     currentTime = 0;
 
     @property({ type: Number })
-    pixelsPerSecond = 20;
+    zoomPercent = 100;
 
     @property({ type: Number })
     beatsPerMeasure = 4;
 
     @property({ type: Number })
     beatsPerMinute = 120;
+
+    @property({ type: Boolean })
+    followPlayback = false;
+
+    @property({ type: Boolean })
+    isPlaying = false;
 
     bounds?: DOMRect;
     midi?: MIDIFile;
@@ -68,6 +74,11 @@ export class MIDITimeline extends LitElement {
         }
     }
 
+    get pixelsPerSecond(): number {
+        return this.contentWidth / (this._midiTrack?.duration || 0) * (this.zoomPercent/100);
+    }
+
+
     get contentWidth() {
         this.bounds = this.getBoundingClientRect();
         return Math.max((this.bounds?.width || 0) - 50, 0);
@@ -96,14 +107,15 @@ export class MIDITimeline extends LitElement {
             .data=${this._midiTrack?.sequence || []}
             noteheight=${noteHeight}
             notemin=${noteMin}
-            notemax=${noteMax}
+            notemax=${noteMax} 
+            followplayback=${this.followPlayback} 
+            isplaying=${this.isPlaying}
             currenttime=${this.currentTime}
             pixelspersecond=${this.pixelsPerSecond}
             beatsperminute=${this.beatsPerMinute}
             beatspermeasure=${this.beatsPerMeasure}>
         </mt-midi-view>`;
     }
-
 
     protected async load(uri: string) {
         this.midi = await MIDIFile.Load(uri);

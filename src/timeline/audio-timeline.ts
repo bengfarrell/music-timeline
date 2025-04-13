@@ -25,9 +25,6 @@ export class AudioTimeline extends LitElement {
     currentTime = 0;
 
     @property({ type: Number })
-    pixelsPerSecond = 20;
-
-    @property({ type: Number })
     beatsPerMinute = 120;
 
     @property({ type: Number })
@@ -36,9 +33,18 @@ export class AudioTimeline extends LitElement {
     @property({ type: Number })
     beatOffsetSeconds = 0;
 
-    bounds?: DOMRect;
+    @property({ type: Number })
+    zoomPercent = 100;
 
-    _buffer?: AudioBuffer;
+    @property({ type: Boolean })
+    followPlayback = false;
+
+    @property({ type: Boolean })
+    isPlaying = false;
+
+    protected bounds?: DOMRect;
+
+    protected _buffer?: AudioBuffer;
 
     set buffer(data: AudioBuffer | undefined) {
         this._buffer = data;
@@ -48,6 +54,10 @@ export class AudioTimeline extends LitElement {
 
     get buffer() {
         return this._buffer;
+    }
+
+    get pixelsPerSecond(): number {
+        return this.contentWidth / (this._buffer?.duration || 0) * (this.zoomPercent/100);
     }
 
     get contentWidth() {
@@ -88,6 +98,8 @@ export class AudioTimeline extends LitElement {
                .buffer=${this.buffer}
                 waveformColor=${this.waveformColor}
                 currenttime=${this.currentTime}
+                followplayback=${this.followPlayback}
+                isplaying=${this.isPlaying}
                 pixelspersecond=${this.pixelsPerSecond}
                 beatsperminute=${this.beatsPerMinute}
                 beatoffsetseconds=${this.beatOffsetSeconds}
