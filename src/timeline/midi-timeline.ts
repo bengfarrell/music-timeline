@@ -1,4 +1,4 @@
-import { html, LitElement } from 'lit';
+import { html } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
 import { style } from './timeline.css.js';
 import '../timeline-view/midi-timeline-view.js';
@@ -6,18 +6,15 @@ import '../notetray/notetray.js';
 import { MIDIFile } from '../utils';
 import { MIDITrack } from '../utils';
 import { MIDITimelineView } from '../timeline-view/midi-timeline-view.js';
+import { TimelineEvent } from '../timeline-view/timelineevent.js';
+import { BaseTimeline } from './base-timeline.js';
 
 @customElement('mt-midi')
-export class MIDITimeline extends LitElement {
-    static TOP_GUTTER = 15;
-
+export class MIDITimeline extends BaseTimeline {
     static styles = style;
 
     @query('mt-midi-view')
     timelineView?: MIDITimelineView;
-
-    @property({ type: String })
-    src = '';
 
     @property({ type: Number })
     trackNum = 0;
@@ -25,25 +22,6 @@ export class MIDITimeline extends LitElement {
     @property({ type: Number, attribute: 'channelnum', reflect: true })
     channelNum?: number;
 
-    @property({ type: Number })
-    currentTime = 0;
-
-    @property({ type: Number })
-    zoomPercent = 100;
-
-    @property({ type: Number })
-    beatsPerMeasure = 4;
-
-    @property({ type: Number })
-    beatsPerMinute = 120;
-
-    @property({ type: Boolean })
-    followPlayback = false;
-
-    @property({ type: Boolean })
-    isPlaying = false;
-
-    bounds?: DOMRect;
     midi?: MIDIFile;
     protected _midiTrack?: MIDITrack;
 
@@ -68,25 +46,8 @@ export class MIDITimeline extends LitElement {
         return this.midiTrack;
     }
 
-    clearSelectionRange() {
-        if (this.timelineView) {
-            this.timelineView.selectionRange = [ undefined, undefined ];
-        }
-    }
-
     get pixelsPerSecond(): number {
         return this.contentWidth / (this._midiTrack?.duration || 0) * (this.zoomPercent/100);
-    }
-
-
-    get contentWidth() {
-        this.bounds = this.getBoundingClientRect();
-        return Math.max((this.bounds?.width || 0) - 50, 0);
-    }
-
-    connectedCallback() {
-        super.connectedCallback();
-        this.bounds = this.getBoundingClientRect();
     }
 
     /**
@@ -103,12 +64,13 @@ export class MIDITimeline extends LitElement {
             notemin=${noteMin}
             notemax=${noteMax}>
         </mt-note-tray>
-        <mt-midi-view style="height: ${this.bounds?.height}px"
+        <mt-midi-view style="height: ${this.bounds?.height}px" 
+            @seek=${(e: TimelineEvent) => this.currentTime = e.time }
             .data=${this._midiTrack?.sequence || []}
             noteheight=${noteHeight}
             notemin=${noteMin}
-            notemax=${noteMax} 
-            followplayback=${this.followPlayback} 
+            notemax=${noteMax}
+            scrollfollowplayback=${this.scrollFollowPlayback}
             isplaying=${this.isPlaying}
             currenttime=${this.currentTime}
             pixelspersecond=${this.pixelsPerSecond}

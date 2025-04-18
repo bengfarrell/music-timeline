@@ -1,3 +1,13 @@
+### v0.5.0 (2025-4-17)
+- fix audio playback current time getter when not playing
+- add grid drag functionality
+- add grid line drag hover time display
+- don't show beat lines when zoomed too far out (do show measures)
+- fix z-order of grid/decorator items
+- fix duration getter of miditrack
+- expose colors and a few other styles as css vars
+- base class for timeline-views to add common functionality
+
 ### v0.4.1 (2025-4-13)
 - remove beat detection, its better to keep this lib simple and have that as an app concern
 - make pixelsPerSecond obsolete in main timeline component in favor of zoom percentage

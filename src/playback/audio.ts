@@ -80,8 +80,11 @@ export class AudioPlayback extends BasePlayback {
     }
 
     get currentTime() {
-        return ((this.context?.currentTime || 0) * this.playbackRate
-            + (this._loopStart ? 0 : this.offsetStart)) % this.duration + (this._loopStart || 0);
+        if (this.context) {
+            return ((this.context?.currentTime || this.pendingSeek || 0) * this.playbackRate
+                + (this._loopStart ? 0 : this.offsetStart)) % this.duration + (this._loopStart || 0);
+        }
+        return this.pendingSeek || 0;
     }
 
     async pause() {

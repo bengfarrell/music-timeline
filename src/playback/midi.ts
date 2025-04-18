@@ -82,11 +82,9 @@ export class MidiPlayback extends BasePlayback {
     tick() {
         const delta = Tone.now() - this._lastTick;
         this._lastTick = Tone.now();
-        console.log(delta, this._lastTick, Tone.now())
         const next = this._noteBuffer[0];
         this._currentTime += delta * this.playbackRate;
         if (next && this._currentTime >= next.time - MidiPlayback.LOOKAHEAD) {
-            console.log('yes');
             const event = this._noteBuffer.shift();
             if (event) {
                 const now = Tone.now();

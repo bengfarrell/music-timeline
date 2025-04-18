@@ -6,6 +6,27 @@ export const style = css`
         overflow-x: auto;
         position: relative;
         display: inline-block;
+
+        --range-highlight-color: white;
+        --range-highlight-opacity: 0.1;
+        --range-select-marker-color: #95b4e8;
+        
+        --playback-marker-color: #ff9701;
+        --playback-marker-shadow: 0 0 4px 0 rgb(250, 255, 0);
+        
+        --midi-note-row-hover-color: #444;
+        --midi-note-color: #9fd7a6;
+        --midi-note-outline-color: #6b9c7f;
+        --midi-note-outline-shadow: 0 0 4px 0 rgba(255, 255, 255, .5);
+        
+        --beat-line-highlight-color: #e8e52a;
+        --measure-line-color: #8a8a8a;
+        --measure-line-hover-color: #c5c5c5;
+        --beat-line-color: #5e5e5e;
+        
+        --beat-time-flag-border-color: #c5c5c5;
+        --beat-time-flag-background-color: #2a2a2a;
+        --beat-time-flag-text-color: #cacaca;
     }
 
     #rendered {
@@ -17,18 +38,20 @@ export const style = css`
 
     #selection-box {
         position: absolute;
-        background-color: white;
-        opacity: 0.1;
+        pointer-events: none;
+        background-color: var(--range-highlight-color);
+        opacity: var(--range-highlight-opacity);
         height: 100%;
     }
 
     #playback-line {
         position: absolute;
-        background-color: #ff9701;
+        background-color: var(--playback-marker-color);
+        pointer-events: none;
         width: 1px;
         height: calc(100% - 5px);
         top: 5px;
-        box-shadow: 0 0 4px 0 rgb(250, 255, 0);
+        box-shadow: var(--playback-marker-shadow);
     }
 
     .noterow {
@@ -39,15 +62,17 @@ export const style = css`
     }
 
     .noterow:hover {
-        background-color: #444;
+        background-color: var(--midi-note-row-hover-color);
     }
 
     .noteblock {
         position: absolute;
         border-radius: 3px;
-        background-color: #9fd7a6;
-        box-shadow: 0 0 4px 0 rgba(255, 255, 255, .5);
-        border: 1px solid #6b9c7f;
+        background-color: var(--midi-note-color);
+        box-shadow: var(--midi-note-outline-shadow);
+        border-width: 1px;
+        border-style: solid;
+        border-color: var(--midi-note-outline-color);
     }
 
     .tick {
@@ -60,29 +85,31 @@ export const style = css`
     }
 
     .highlight.tick {
-        border-left-color: #e8e52a;
+        border-left-color: var(--beat-line-highlight-color);
         display: none;
     }
 
     .hard.tick {
-        border-left-color: #8a8a8a;
+        border-left-color: var(--measure-line-color);
     }
 
     .hard.tick:hover,
-    .soft.tick:hover {
-        border-left-color: #c5c5c5;
+    .soft.tick:hover
+    :host([griddragmode]) .hard.tick,
+    :host([griddragmode]) .soft.tick {
+        border-left-color: var(--measure-line-hover-color);
     }
 
     .soft.tick {
-        border-left-color: #5e5e5e;
+        border-left-color: var(--beat-line-color);
     }
 
     .marker.playhead:before, .marker.playhead:after {
-        background: #ff9701;
+        background: var(--playback-marker-color);
     }
 
     .marker:before, .marker:after {
-        background: #95b4e8;
+        background: var(--range-select-marker-color);
     }
 
     .marker, .marker:before, .marker:after {
@@ -93,7 +120,7 @@ export const style = css`
     .marker {
         overflow: hidden;
         position: absolute;
-        top: 0;
+        top: -3px;
         border-radius: 20%;
         transform: translateY(5%) rotate(-30deg) skewY(30deg) scaleX(.866);
         cursor: pointer;
@@ -118,13 +145,16 @@ export const style = css`
     
     #beat-time {
         position: absolute;
-        border: 1px solid #c5c5c5;
-        background-color: #2a2a2a;
-        color: #cacaca;
+        border-width: 1px;
+        border-style: solid;
+        border-color: var(--beat-time-flag-border-color);
+        background-color: var(--beat-time-flag-background-color);
+        color: var(--beat-time-flag-text-color);
         font-size: 10px;
         font-family: sans-serif;
         padding: 4px;
         top: 20px;
+        pointer-events: none;
         border-bottom-right-radius: 8px;
         border-top-right-radius: 8px;
     }

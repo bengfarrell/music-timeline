@@ -54,7 +54,9 @@ export class MIDITrack {
 
     get sequence() { return this.sequenceAtTempo(this.timeMeta.tempo, this.timeMeta.division); }
 
-    get duration() { return (this.timeMeta.duration || 0) / this.timeMeta.tempo }
+    get duration() {
+        return MIDITicksToSecs(this.timeMeta.duration, this.timeMeta.tempo, this.timeMeta.division);
+    }
 
     sequenceAtTempo(tempo: number, division: number) {
         // TODO: may have a sequence of tempos, even in the first track as a data track to be applied here?

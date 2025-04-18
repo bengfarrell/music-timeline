@@ -45,26 +45,23 @@ export class MIDITimelineView extends BaseTimelineView {
         const drawRange = range[0] !== undefined && range[1] !== undefined && range[0] !== range[1];
         return html`
             <div>${this.renderNoteRows()}</div>
-            <div id="selection-box" 
-                 style="left: ${drawRange ? range[0]! * this.pixelsPerSecond : -100}px;
-                        width: ${drawRange ? (range[1]! - range[0]!) * this.pixelsPerSecond : -100}px"
-            ></div>
             ${this.renderGrid()}
             <div @pointermove=${(e: PointerEvent) => {
-            const note = Number((e.target as HTMLDivElement).dataset.noteIndex);
-            if (note !== undefined) {
-                this.dispatchEvent(new TimelineEvent(TimelineEvent.NOTE_HOVER,
-                    { time: this._notes[note].time, note: this._notes[note] }, { bubbles: true, composed: true }));
-            }
-        }}>
-                ${this._notes.map((event: NoteEvent, index) => {
-            return html`${this.renderNote(event, index)}`;
-        })}
+                const note = Number((e.target as HTMLDivElement).dataset.noteIndex);
+                if (note !== undefined) {
+                    this.dispatchEvent(new TimelineEvent(TimelineEvent.NOTE_HOVER,
+                        { time: this._notes[note].time, note: this._notes[note] }, { bubbles: true, composed: true }));
+                }
+            }}>
+            ${this._notes.map((event: NoteEvent, index) => {
+                return html`${this.renderNote(event, index)}`;
+            })}
             </div>
             ${this._notes.length > 0 ? html`<div id="playback-line" style="left: ${this.currentTime * this.pixelsPerSecond}px"></div>
             <div class="marker playhead" id="playback" @pointerdown=${this.handleMarkerDown.bind(this)} style="left: ${this.currentTime * this.pixelsPerSecond - 3}px"></div>
             <div class="marker" id="start-range" @pointerdown=${this.handleMarkerDown.bind(this)} style="left: ${drawRange ? range[0]! * this.pixelsPerSecond - 3 : -100}px"></div>
-            <div class="marker" id="end-range" @pointerdown=${this.handleMarkerDown.bind(this)} style="left: ${drawRange ? range[1]! * this.pixelsPerSecond - 3 : -100}px"></div>` : undefined}`;
+            <div class="marker" id="end-range" @pointerdown=${this.handleMarkerDown.bind(this)} style="left: ${drawRange ? range[1]! * this.pixelsPerSecond - 3 : -100}px"></div>` : undefined}
+            ${this.renderDecorators()}`;
     }
 
     protected renderNote(note: NoteEvent, index: number) {

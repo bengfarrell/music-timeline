@@ -31,7 +31,7 @@
 
         timeline.addEventListener(RangeSelectEvent.type, (e) => {
             if (e.range) {
-                Playback.loop(...e.rangeAsSeconds);
+                Playback.loop(...e.rangeAsMeasures);
             } else {
                 Playback.clearLoopRange();
             }

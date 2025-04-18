@@ -1,5 +1,5 @@
 import { LitElement, html } from 'lit';
-import { property } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
 import { style } from './timeline-view.css';
 import { NoteEvent } from '../utils';
 import { RangeSelectEvent, TimelineEvent } from './timelineevent';
@@ -8,6 +8,9 @@ export class BaseTimelineView extends LitElement {
     static styles = style;
 
     static topGutter = 25;
+
+    // pixelsPerSecond threshold where we show measures only and no beats
+    static MEASURES_ONLY_THRESHOLD = 15;
 
     @property({ type: Number })
     pixelsPerSecond: number = 0;
@@ -22,7 +25,10 @@ export class BaseTimelineView extends LitElement {
     beatOffsetSeconds = 0;
 
     @property({ type: Boolean })
-    followPlayback = false;
+    scrollFollowPlayback = true;
+
+    @property({ type: Boolean, reflect: true })
+    gridDragMode = false;
 
     @property({ type: Boolean })
     isPlaying = false;
@@ -30,7 +36,7 @@ export class BaseTimelineView extends LitElement {
     @property({ type: Number })
     set currentTime(value: number) {
         this._currentTime = value;
-        if (this.followPlayback && this.isPlaying) {
+        if (this.scrollFollowPlayback && this.isPlaying) {
             const width = this.getBoundingClientRect().width;
             if (this._currentTime * this.pixelsPerSecond >= this.scrollLeft + width || this._currentTime * this.pixelsPerSecond < this.scrollLeft) {
                 this.scrollLeft = this._currentTime * this.pixelsPerSecond;
@@ -42,7 +48,12 @@ export class BaseTimelineView extends LitElement {
         return this._currentTime;
     }
 
+    @state()
+    protected hoverTime?: number;
+
     protected markerDragging?: 'start' | 'end' | 'playback';
+
+    protected gridDragging?: { lastXPos: number, xPosAtDown: number, hoverTimeAtDown?: number };
 
     protected _notes: NoteEvent[] = [];
 
@@ -54,6 +65,7 @@ export class BaseTimelineView extends LitElement {
 
     protected isSelecting: boolean = false;
     protected pendingSeek?: number;
+
     selectionRange: [number | undefined, number | undefined] = [ undefined, undefined ];
 
     highlightBeat(beat: number) {
@@ -84,6 +96,15 @@ export class BaseTimelineView extends LitElement {
             }
             this.isSelecting = false;
             this.markerDragging = undefined;
+            this.gridDragging = undefined;
+        });
+
+        document.addEventListener('keydown', e => {
+            if (e.altKey) this.gridDragMode = true;
+        });
+
+        document.addEventListener('keyup', e => {
+            if (!e.altKey) this.gridDragMode = false;
         });
     }
 
@@ -94,18 +115,22 @@ export class BaseTimelineView extends LitElement {
     }
 
     protected onPointerDown(e: PointerEvent) {
-        this.markerDragging = undefined;
-        this.isSelecting = true;
-        this.bounds = this.getBoundingClientRect();
-        const x = e.clientX - (this.bounds?.left || 0) + this.scrollLeft;
-        const time = x / this.pixelsPerSecond - this.beatOffsetSeconds;
-        this.pendingSeek = this.nearestBeat(time);
+        if (this.gridDragMode) {
+            this.gridDragging = { lastXPos: e.clientX, xPosAtDown: e.clientX, hoverTimeAtDown: this.hoverTime };
+        } else {
+            this.markerDragging = undefined;
+            this.isSelecting = true;
+            this.bounds = this.getBoundingClientRect();
+            const x = e.clientX - (this.bounds?.left || 0) + this.scrollLeft;
+            const time = x / this.pixelsPerSecond - this.beatOffsetSeconds;
+            this.pendingSeek = this.nearestBeat(time);
 
-        if (this.selectionRange[0] !== undefined && this.selectionRange[1] !== undefined) {
-            this.dispatchEvent(new RangeSelectEvent(undefined, this.beatsPerMinute / 60, { bubbles: true, composed: true }));
+            if (this.selectionRange[0] !== undefined && this.selectionRange[1] !== undefined) {
+                this.dispatchEvent(new RangeSelectEvent(undefined, this.beatsPerMinute / 60, { bubbles: true, composed: true }));
+            }
+            this.selectionRange = [this.pendingSeek, undefined];
+            this.requestUpdate();
         }
-        this.selectionRange = [this.pendingSeek, undefined];
-        this.requestUpdate();
     }
 
     protected onPointerMove(e: PointerEvent) {
@@ -134,6 +159,16 @@ export class BaseTimelineView extends LitElement {
             this.pendingSeek = undefined;
             this.requestUpdate();
         }
+
+        if (this.gridDragging) {
+            this.beatOffsetSeconds += (e.clientX - this.gridDragging.lastXPos) / this.pixelsPerSecond;
+            this.gridDragging.lastXPos = e.clientX;
+            if (this.gridDragging.hoverTimeAtDown) {
+                this.hoverTime = this.gridDragging.hoverTimeAtDown + (e.clientX - this.gridDragging.xPosAtDown) / this.pixelsPerSecond;
+            }
+            e.stopPropagation();
+            this.requestUpdate();
+        }
     }
 
     protected handleMarkerDown(e: PointerEvent) {
@@ -156,6 +191,23 @@ export class BaseTimelineView extends LitElement {
         return html``;
     }
 
+    protected renderDecorators() {
+        const range = this.selectionRange.slice().sort((a, b) => a! - b!);
+        const drawRange = range[0] !== undefined && range[1] !== undefined && range[0] !== range[1];
+
+        return html`
+            <div class="highlight tick" id="highlight-tick"></div>
+            <div id="selection-box"
+                 style="left: ${drawRange ? range[0]! * this.pixelsPerSecond : -100}px;
+                        width: ${drawRange ? (range[1]! - range[0]!) * this.pixelsPerSecond : -100}px"
+            ></div>
+            <div id="playback-line" style="left: ${this.currentTime * this.pixelsPerSecond}px"></div>
+            <div class="marker playhead" id="playback" @pointerdown=${this.handleMarkerDown.bind(this)} style="left: ${this.currentTime * this.pixelsPerSecond - 3}px"></div>
+            <div class="marker" id="start-range" @pointerdown=${this.handleMarkerDown.bind(this)} style="left: ${drawRange ? range[0]! * this.pixelsPerSecond - 3 : -100}px"></div>
+            <div class="marker" id="end-range" @pointerdown=${this.handleMarkerDown.bind(this)} style="left: ${drawRange ? range[1]! * this.pixelsPerSecond - 3 : -100}px"></div>
+            ${this.hoverTime ? html`<div id="beat-time" style="left: ${this.hoverTime * this.pixelsPerSecond}px">${this.formatTime(this.hoverTime)}</div>` : undefined}`;
+    }
+
     protected renderGrid() {
         const ticks = [];
         const secondsPerBeat = 1 / (this.beatsPerMinute / 60);
@@ -166,13 +218,11 @@ export class BaseTimelineView extends LitElement {
             if (isHardTick) {
                 ticks.push(html`
                     <div class="hard tick" @mouseleave=${() => this.hoverBeat(false, time)} @mouseover=${() => this.hoverBeat(true, time)} id="beat-${c}" style="left: ${time * this.pixelsPerSecond}px"></div>`);
-            } else {
+            } else if (this.pixelsPerSecond > BaseTimelineView.MEASURES_ONLY_THRESHOLD) {
                 ticks.push(html`
                     <div class="soft tick" @mouseleave=${() => this.hoverBeat(false, time)} @mouseover=${() => this.hoverBeat(true, time)} id="beat-${c}" style="left: ${time * this.pixelsPerSecond}px"></div>`);
             }
         }
-        ticks.push(html`<div class="highlight tick" id="highlight-tick"></div>`);
-        ticks.push(html`<div id="beat-time"></div>`);
         return ticks;
     }
 
@@ -189,11 +239,9 @@ export class BaseTimelineView extends LitElement {
 
     protected hoverBeat(hovered: boolean, time: number) {
         if (hovered) {
-            this.shadowRoot!.getElementById('beat-time')!.style.left = (time * this.pixelsPerSecond) + 'px';
-            this.shadowRoot!.getElementById('beat-time')!.style.display = 'block';
-            this.shadowRoot!.getElementById('beat-time')!.innerText = `${this.formatTime(time)}`;
+            this.hoverTime = time;
         } else {
-            this.shadowRoot!.getElementById('beat-time')!.style.display = 'none';
+            this.hoverTime = undefined;
         }
     }
 }

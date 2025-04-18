@@ -10,7 +10,7 @@ export class AudioTimelineView extends BaseTimelineView {
 
     protected _buffer?: AudioBuffer;
 
-    protected smoothing = 0.9;
+    protected smoothing = 0.94;
 
     protected waveformRendered = false;
 
@@ -56,18 +56,9 @@ export class AudioTimelineView extends BaseTimelineView {
     }
 
     protected render() {
-        const range = this.selectionRange.slice().sort((a, b) => a! - b!);
-        const drawRange = range[0] !== undefined && range[1] !== undefined && range[0] !== range[1];
         return html`
             <canvas id="rendered"></canvas>
-            <div id="selection-box" 
-                 style="left: ${drawRange ? range[0]! * this.pixelsPerSecond : -100}px;
-                        width: ${drawRange ? (range[1]! - range[0]!) * this.pixelsPerSecond : -100}px"
-            ></div>
             ${this.renderGrid()}
-            ${this._buffer ? html`<div id="playback-line" style="left: ${this.currentTime * this.pixelsPerSecond}px"></div>
-            <div class="marker playhead" id="playback" @pointerdown=${this.handleMarkerDown.bind(this)} style="left: ${this.currentTime * this.pixelsPerSecond - 3}px"></div>
-            <div class="marker" id="start-range" @pointerdown=${this.handleMarkerDown.bind(this)} style="left: ${drawRange ? range[0]! * this.pixelsPerSecond - 3 : -100}px"></div>
-            <div class="marker" id="end-range" @pointerdown=${this.handleMarkerDown.bind(this)} style="left: ${drawRange ? range[1]! * this.pixelsPerSecond - 3 : -100}px"></div>` : undefined}`;
+            ${this.renderDecorators()}`
     }
 }
